@@ -13,7 +13,7 @@ filetype plugin on
 
 set number                      "Line numbers are good
 set backspace=indent,eol,start  "Allow backspace in insert mode
-set history=1000                "Store lots of :cmdline history
+set history=10000               "Store lots of :cmdline history
 set showcmd                     "Show incomplete cmds down the bottom
 set showmode                    "Show current mode down the bottom
 set gcr=a:blinkon0              "Disable cursor blink
@@ -41,18 +41,18 @@ call togglebg#map("<F5>")
 
 " ================ Turn Off Swap Files ==============
 
-set noswapfile
-set nobackup
-set nowb
+"set swapfile
+"set nobackup
+"set nowb
 
 " ================ Persistent Undo ==================
 " Keep undo history across sessions, by storing in file.
 " Only works all the time.
-if has('persistent_undo')
- silent !mkdir ~/.vim/backups > /dev/null 2>&1
- set undodir=~/.vim/backups
- set undofile
-endif
+"if has('persistent_undo')
+" silent !mkdir ~/.vim/backups > /dev/null 2>&1
+" set undodir=~/.vim/backups
+" set undofile
+"endif
 
 " ================ Indentation ======================
 
