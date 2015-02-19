@@ -11,14 +11,18 @@ filetype plugin on
 
 " ================ General Config ====================
 
+set title                       "Set window title
+set ttyfast                     "Send chracters more quickly
 set number                      "Line numbers are good
 set backspace=indent,eol,start  "Allow backspace in insert mode
+nnoremap <BS> dh                "Fix backspace
 set history=10000               "Store lots of :cmdline history
 set showcmd                     "Show incomplete cmds down the bottom
 set showmode                    "Show current mode down the bottom
 set gcr=a:blinkon0              "Disable cursor blink
 set visualbell                  "No sounds
 set autoread                    "Reload files changed outside vim
+noremap Y y                     "$ Make Y behave like C and D
 
 " This makes vim act like all other editors, buffers can
 " exist in the background without being in a window.
@@ -35,9 +39,37 @@ set laststatus=2
 let g:airline_powerline_fonts=1
 
 " Configure theme
-set background=dark
+set background=light
 colorscheme solarized
 call togglebg#map("<F5>")
+
+" Write with sudo command
+cnoremap sudow w !sudo tee % >/dev/null
+
+" ================ Window navigation ================
+nmap <C-h> <C-w>h
+nmap <C-j> <C-w>j
+nmap <C-k> <C-w>k
+nmap <C-l> <C-w>l
+nmap <C-Left> <C-w>h
+nmap <C-Down> <C-w>j
+nmap <C-Up> <C-w>k
+nmap <C-Right> <C-w>l
+
+inoremap <C-h>     <ESC><C-w>h
+inoremap <C-j>     <ESC><C-w>j
+inoremap <C-k>     <ESC><C-w>k
+inoremap <C-l>     <ESC><C-w>l
+inoremap <C-Left>  <ESC><C-w>h
+inoremap <C-Down>  <ESC><C-w>j
+inoremap <C-Up>    <ESC><C-w>k
+inoremap <C-Right> <ESC><C-w>l
+
+" tabs
+nnoremap <C-t> :tabnew<CR>
+nnoremap <C-d> :tabclose<CR>
+nmap <S-Right> gt
+nmap <S-Left> gT
 
 " ================ Turn Off Swap Files ==============
 
@@ -48,11 +80,13 @@ call togglebg#map("<F5>")
 " ================ Persistent Undo ==================
 " Keep undo history across sessions, by storing in file.
 " Only works all the time.
-"if has('persistent_undo')
-" silent !mkdir ~/.vim/backups > /dev/null 2>&1
-" set undodir=~/.vim/backups
-" set undofile
-"endif
+if has('persistent_undo')
+  silent !mkdir ~/.vim/backups > /dev/null 2>&1
+  set undodir=~/.vim/backups
+  set undoreload=10000
+  set undolevels=10000
+  set undofile
+endif
 
 " ================ Indentation ======================
 
@@ -72,6 +106,9 @@ set list listchars=tab:\ \ ,trail:·
 
 set nowrap       "Don't wrap lines
 set linebreak    "Wrap lines at convenient points
+nnoremap <leader>w :set wrap!<cr> "Toggle word wrap
+
+nmap <C-i> msgg=G`s
 
 " ================ Folds ============================
 
@@ -107,12 +144,22 @@ set incsearch       " Find the next match as we type the search
 set hlsearch        " Highlight searches by default
 set ignorecase      " Ignore case when searching...
 set smartcase       " ...unless we type a capital
+nmap <silent> <C-c> :silent noh<CR>
 
-" bufexplorer: map leader b
-nnoremap <silent> <unique> <leader>b :BufExplorer<CR>
-
+" ================ Plugins ==========================
 " Let syntastic use Puppet future parser
 let g:syntastic_puppet_puppet_args = "--parser future"
 
 " Nerdtree
 nnoremap <leader>d :NERDTreeToggle<cr>
+
+" tabular: align Puppet stanzas
+nnoremap <leader>t :Tabularize /=><CR>
+
+" Fuzzy
+noremap <Leader>f :FufFileWithCurrentBufferDir<CR>
+noremap <Leader>F :FufFile<CR>
+noremap <Leader>v :FufCoverageFile<CR>
+noremap <Leader>b :FufBuffer<CR>
+noremap <Leader>c :FufDirWithFullCwd<CR>
+noremap <F1> :FufHelp<CR>
