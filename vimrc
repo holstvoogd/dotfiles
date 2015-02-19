@@ -31,22 +31,11 @@ syntax on
 " always show statusbar
 set laststatus=2
 
-" Necessary to show fancy glyphs
-"set guifont=Inconsolata\ for\ Powerline:h15
-"set encoding=utf-8
-"set fillchars+=stl:\ ,stlnc:\
-"set term=xterm-256color
-"set termencoding=utf-8
-"scriptencoding utf-8
+" Use poweline font for airline
+let g:airline_powerline_fonts=1
 
-let g:Powerline_symbols = 'unicode'
-let g:Powerline_theme='long'
-let g:Powerline_colorscheme='solarized256_dark'
-
-"let g:solarized_termtrans = 1
-"let g:solarized_termcolors=256
+" Configure theme
 set background=dark
-"set t_Co=256
 colorscheme solarized
 call togglebg#map("<F5>")
 
