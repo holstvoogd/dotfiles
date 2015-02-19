@@ -110,3 +110,9 @@ set smartcase       " ...unless we type a capital
 
 " bufexplorer: map leader b
 nnoremap <silent> <unique> <leader>b :BufExplorer<CR>
+
+" Let syntastic use Puppet future parser
+let g:syntastic_puppet_puppet_args = "--parser future"
+
+" Nerdtree
+nnoremap <leader>d :NERDTreeToggle<cr>
