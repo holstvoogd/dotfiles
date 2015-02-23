@@ -15,14 +15,19 @@ set title                       "Set window title
 set ttyfast                     "Send chracters more quickly
 set number                      "Line numbers are good
 set backspace=indent,eol,start  "Allow backspace in insert mode
-nnoremap <BS> dh                "Fix backspace
 set history=10000               "Store lots of :cmdline history
 set showcmd                     "Show incomplete cmds down the bottom
 set showmode                    "Show current mode down the bottom
 set gcr=a:blinkon0              "Disable cursor blink
 set visualbell                  "No sounds
 set autoread                    "Reload files changed outside vim
-noremap Y y                     "$ Make Y behave like C and D
+
+"$ Make Y behave like C and D
+noremap Y y$
+
+"Fix backspace
+nnoremap <BS> dh
+
 
 " This makes vim act like all other editors, buffers can
 " exist in the background without being in a window.
@@ -47,29 +52,36 @@ call togglebg#map("<F5>")
 cnoremap sudow w !sudo tee % >/dev/null
 
 " ================ Window navigation ================
-nmap <C-h> <C-w>h
-nmap <C-j> <C-w>j
-nmap <C-k> <C-w>k
-nmap <C-l> <C-w>l
-nmap <C-Left> <C-w>h
-nmap <C-Down> <C-w>j
-nmap <C-Up> <C-w>k
-nmap <C-Right> <C-w>l
+" Uses vim-tmux-navigator defaults on hjkl/
+nnoremap <silent> <c-Left> :TmuxNavigateLeft<cr>
+nnoremap <silent> <c-Down> :TmuxNavigateDown<cr>
+nnoremap <silent> <c-Up> :TmuxNavigateUp<cr>
+nnoremap <silent> <c-Right> :TmuxNavigateRight<cr>
 
-inoremap <C-h>     <ESC><C-w>h
-inoremap <C-j>     <ESC><C-w>j
-inoremap <C-k>     <ESC><C-w>k
-inoremap <C-l>     <ESC><C-w>l
-inoremap <C-Left>  <ESC><C-w>h
-inoremap <C-Down>  <ESC><C-w>j
-inoremap <C-Up>    <ESC><C-w>k
-inoremap <C-Right> <ESC><C-w>l
+" Also allow in interactive mode
+inoremap <C-h>     <ESC><C-h>
+inoremap <C-j>     <ESC><C-j>
+inoremap <C-k>     <ESC><C-k>
+inoremap <C-l>     <ESC><C-l>
+inoremap <C-\>     <ESC><C-\>
+inoremap <C-Left>  <ESC><C-h>
+inoremap <C-Down>  <ESC><C-j>
+inoremap <C-Up>    <ESC><C-k>
+inoremap <C-Right> <ESC><C-l>
 
 " tabs
 nnoremap <C-t> :tabnew<CR>
 nnoremap <C-d> :tabclose<CR>
 nmap <S-Right> gt
 nmap <S-Left> gT
+
+" ================== Mouse enabled! =================
+if has('mouse')
+  set mouse=a
+  if &term =~ "xterm" || &term =~ "screen"
+    set ttymouse=xterm2
+  endif
+endif
 
 " ================ Turn Off Swap Files ==============
 
@@ -106,7 +118,8 @@ set list listchars=tab:\ \ ,trail:·
 
 set nowrap       "Don't wrap lines
 set linebreak    "Wrap lines at convenient points
-nnoremap <leader>w :set wrap!<cr> "Toggle word wrap
+"Toggle word wrap
+nnoremap <leader>w :set wrap!<cr>
 
 nmap <C-i> msgg=G`s
 
@@ -152,14 +165,17 @@ let g:syntastic_puppet_puppet_args = "--parser future"
 
 " Nerdtree
 nnoremap <leader>d :NERDTreeToggle<cr>
+" Open nerdtree if no file loaded
+autocmd StdinReadPre * let s:std_in=1
+autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
+" Close vim if only nerdtree is open on :q
+autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 
 " tabular: align Puppet stanzas
-nnoremap <leader>t :Tabularize /=><CR>
+nnoremap <leader>T :Tabularize /=><CR>
 
-" Fuzzy
-noremap <Leader>f :FufFileWithCurrentBufferDir<CR>
-noremap <Leader>F :FufFile<CR>
-noremap <Leader>v :FufCoverageFile<CR>
-noremap <Leader>b :FufBuffer<CR>
-noremap <Leader>c :FufDirWithFullCwd<CR>
-noremap <F1> :FufHelp<CR>
+:nnoremap <C-w> :Bdelete<CR>
+
+" CommandT: configure searcher
+let g:CommandTFileScanner = 'watchman'
+let g:CommandTInputDebounce = 20

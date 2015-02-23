@@ -45,7 +45,7 @@ ZSH_THEME="rdelange"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git cp osx rake-fast rsync vagrant)
+plugins=(git cp osx rake-fast rsync vagrant vi-mode)
 
 # User configuration
 
@@ -82,3 +82,4 @@ fi
 
 export RUBY_GC_MALLOC_LIMIT=64000000
 export CAP_USER=arthur.holstvoogd
+export RPS1='$(vi_mode_prompt_info)'$RPS1
