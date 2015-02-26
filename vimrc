@@ -177,5 +177,5 @@ nnoremap <leader>T :Tabularize /=><CR>
 :nnoremap <C-w> :Bdelete<CR>
 
 " CommandT: configure searcher
-let g:CommandTFileScanner = 'watchman'
+let g:CommandTFileScanner = 'git'
 let g:CommandTInputDebounce = 20

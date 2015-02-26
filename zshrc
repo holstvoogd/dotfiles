@@ -45,7 +45,7 @@ ZSH_THEME="rdelange"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git cp osx rake-fast rsync vagrant vi-mode)
+plugins=(cp git osx rake-fast rsync vagrant vi-mode)
 
 # User configuration
 
@@ -58,12 +58,8 @@ source $ZSH/oh-my-zsh.sh
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
-# Preferred editor for local and remote sessions
-if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='vim'
-else
-  export EDITOR='vim'
-fi
+# Preferred editor
+export EDITOR='vim'
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -82,4 +78,12 @@ fi
 
 export RUBY_GC_MALLOC_LIMIT=64000000
 export CAP_USER=arthur.holstvoogd
+
+# Show VI mode
 export RPS1='$(vi_mode_prompt_info)'$RPS1
+
+# Key bindings
+bindkey -M vicmd '/' history-incremental-search-backward
+bindkey '^r' history-incremental-search-backward
+
+source $ZSH/lib/key-bindings.zsh

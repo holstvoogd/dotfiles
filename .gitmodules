@@ -55,12 +55,12 @@
 [submodule "vim/bundle/nerdtree"]
 	path = vim/bundle/nerdtree
 	url = git@github.com:scrooloose/nerdtree.git
-[submodule "vim/bundle/command-t"]
-	path = vim/bundle/command-t
-	url = git@github.com:wincent/command-t.git
 [submodule "vim/bundle/vim-bbye"]
 	path = vim/bundle/vim-bbye
 	url = https://github.com/moll/vim-bbye.git
 [submodule "vim/bundle/vim-tmux-navigator"]
 	path = vim/bundle/vim-tmux-navigator
 	url = git@github.com:christoomey/vim-tmux-navigator.git
+[submodule "vim/bundle/command-t"]
+	path = vim/bundle/command-t
+	url = git@github.com:wincent/command-t.git
