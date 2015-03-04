@@ -94,7 +94,7 @@ endif
 " Only works all the time.
 if has('persistent_undo')
   silent !mkdir ~/.vim/backups > /dev/null 2>&1
-  set undodir=~/.vim/backups
+  set undodir=~/.vim/backups//
   set undoreload=10000
   set undolevels=10000
   set undofile
