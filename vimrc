@@ -21,6 +21,7 @@ set showmode                    "Show current mode down the bottom
 set gcr=a:blinkon0              "Disable cursor blink
 set visualbell                  "No sounds
 set autoread                    "Reload files changed outside vim
+set switchbuf=useopen,usetab    "Switch to already opened files
 
 "$ Make Y behave like C and D
 noremap Y y$
@@ -69,11 +70,37 @@ inoremap <C-Down>  <ESC><C-j>
 inoremap <C-Up>    <ESC><C-k>
 inoremap <C-Right> <ESC><C-l>
 
+" ================= Buffers & tabs ====================
+let g:airline#extensions#bufferline#enabled=0
+
+" Enable the list of buffers
+let g:airline#extensions#tabline#enabled = 1
+
+" Show just the filename
+let g:airline#extensions#tabline#fnamemod = ':t'
+
+" This allows buffers to be hidden if you've modified a buffer.
+" This is almost a must if you wish to use buffers in this way.
+set hidden
+
+" To open a new empty buffer
+" This replaces :tabnew which I used to bind to this mapping
+nmap <leader>t :enew<cr>
+noremap <C-t> :enew<cr>
+
+" Move to the next buffer
+nmap <leader>l :bnext<CR>
+noremap <C-S-Right> :bnext<cr>
+
+" Move to the previous buffer
+nmap <leader>h :bprevious<CR>
+noremap <C-S-Left> :bprevious<cr>
+
 " tabs
-nnoremap <C-t> :tabnew<CR>
-nnoremap <C-d> :tabclose<CR>
-nmap <S-Right> gt
-nmap <S-Left> gT
+"nnoremap <C-t> :tabnew<CR>
+"nnoremap <C-d> :tabclose<CR>
+"nmap <S-Right> gt
+"nmap <S-Left> gT
 
 " ================== Mouse enabled! =================
 if has('mouse')
