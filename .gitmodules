@@ -61,9 +61,12 @@
 [submodule "vim/bundle/vim-tmux-navigator"]
 	path = vim/bundle/vim-tmux-navigator
 	url = git@github.com:christoomey/vim-tmux-navigator.git
-[submodule "vim/bundle/command-t"]
-	path = vim/bundle/command-t
-	url = git@github.com:wincent/command-t.git
 [submodule "vim/bundle/vim-ack"]
 	path = vim/bundle/vim-ack
 	url = git@github.com:mileszs/ack.vim.git
+[submodule "vim/bundle/vim-FuzzyFinder"]
+	path = vim/bundle/vim-FuzzyFinder
+	url = git@github.com:vim-scripts/FuzzyFinder.git
+[submodule "vim/bundle/vim-go"]
+	path = vim/bundle/vim-go
+	url = https://github.com/fatih/vim-go.git

@@ -44,7 +44,7 @@ set laststatus=2
 let g:airline_powerline_fonts=1
 
 " Configure theme
-set background=light
+" set background=light " Automatically based of the iTerm profile somehow...
 colorscheme solarized
 call togglebg#map("<F5>")
 
@@ -176,6 +176,11 @@ nnoremap <leader>T :Tabularize /=><CR>
 
 :nnoremap <C-w> :Bdelete<CR>
 
-" CommandT: configure searcher
-let g:CommandTFileScanner = 'git'
-let g:CommandTInputDebounce = 20
+" Fuzzy Finder
+noremap <Leader>f :FufFileWithCurrentBufferDir<CR>
+noremap <Leader>F :FufFile<CR>
+noremap <Leader>v :FufCoverageFile<CR>
+noremap <Leader>b :FufBuffer<CR>
+noremap <Leader>c :FufDirWithFullCwd<CR>
+noremap <F1> :FufHelp<CR>
+
