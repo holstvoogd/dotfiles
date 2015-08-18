@@ -212,10 +212,9 @@ noremap <Leader>c :FufDirWithFullCwd<CR>
 noremap <F1> :FufHelp<CR>
 
 " eyaml helper
-function EyamlEncryptValue()
-
-  " Yank selection to register x
-  normal! "xy
+function EyamlEncrypt()
+  " Yank current or last selection to register x
+  normal! gv"xy
 
   "put the content of register x through the eyaml binary and do some magic voodoo to it reg x
   let shellcmd = 'eyaml encrypt --stdin 2>&1 | grep -v "\[hiera" | grep "^string"  | cut -c9-'
@@ -229,4 +228,4 @@ function EyamlEncryptValue()
 
 endfunction
 
-map <F3> :call EyamlEncryptValue() <CR>
+map <F3> :call EyamlEncrypt() <CR>
