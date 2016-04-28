@@ -103,7 +103,7 @@ noremap <C-S-Left> :bprevious<cr>
 "nmap <S-Left> gT
 
 " ================== Mouse enabled! =================
-if has('mouse')
+if has('mouse') && !has('nvim')
   set mouse=a
   if &term =~ "xterm" || &term =~ "screen"
     set ttymouse=xterm2

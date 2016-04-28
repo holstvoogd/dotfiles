@@ -45,7 +45,7 @@ ZSH_THEME="rdelange"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(cp git osx rake-fast rsync vagrant vi-mode)
+plugins=(gpg-agent cp git osx rake-fast rsync vagrant vi-mode autojump)
 
 # User configuration
 
