@@ -121,7 +121,7 @@ endif
 " Only works all the time.
 if has('persistent_undo')
   silent !mkdir ~/.vim/backups > /dev/null 2>&1
-  set undodir=~/.vim/backups//
+  set undodir=~/.vim/backups
   set undoreload=10000
   set undolevels=10000
   set undofile
@@ -171,7 +171,6 @@ set wildignore+=log/**
 set wildignore+=tmp/**
 set wildignore+=*.png,*.jpg,*.gif
 
-"
 " ================ Scrolling ========================
 
 set scrolloff=8         "Start scrolling when we're 8 lines away from margins
@@ -201,7 +200,7 @@ autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTree
 " tabular: align Puppet stanzas
 nnoremap <leader>T :Tabularize /=><CR>
 
-:nnoremap <C-w> :Bdelete<CR>
+nnoremap <C-w> :Bdelete<CR>
 
 " Fuzzy Finder
 noremap <Leader>f :FufFileWithCurrentBufferDir<CR>
