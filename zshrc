@@ -77,7 +77,6 @@ export EDITOR='vim'
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 export RUBY_GC_MALLOC_LIMIT=64000000
-export HOMEBREW_GITHUB_API_TOKEN="f9dd80796850b1f96131f1ecf4bb6ddf3741b7f2"
 
 # Show VI mode
 export RPS1='$(vi_mode_prompt_info)'$RPS1
@@ -87,3 +86,14 @@ bindkey -M vicmd '/' history-incremental-search-backward
 bindkey '^r' history-incremental-search-backward
 
 source $ZSH/lib/key-bindings.zsh
+
+if [ -f "${HOME}/.gpg-agent-info" ]; then
+  . "${HOME}/.gpg-agent-info"
+  export GPG_AGENT_INFO
+  export SSH_AUTH_SOCK
+  export SSH_AGENT_PID
+fi
+
+if [ -d "${HOME}/kube-cluster/bin" ]; then
+  export PATH="${HOME}/kube-cluster/bin":$PATH
+fi

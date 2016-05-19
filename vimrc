@@ -45,7 +45,11 @@ set laststatus=2
 let g:airline_powerline_fonts=1
 
 " Configure theme
-" set background=light " Automatically based of the iTerm profile somehow...
+if $ITERM_PROFILE =~ 'Dark'
+  set background=dark
+else
+  set background=light
+endif
 colorscheme solarized
 call togglebg#map("<F5>")
 
@@ -53,13 +57,7 @@ call togglebg#map("<F5>")
 cnoremap sudow w !sudo tee % >/dev/null
 
 " ================ Window navigation ================
-" Uses vim-tmux-navigator defaults on hjkl/
-nnoremap <silent> <c-Left> :TmuxNavigateLeft<cr>
-nnoremap <silent> <c-Down> :TmuxNavigateDown<cr>
-nnoremap <silent> <c-Up> :TmuxNavigateUp<cr>
-nnoremap <silent> <c-Right> :TmuxNavigateRight<cr>
-
-" Also allow in interactive mode
+" Allow in interactive mode
 inoremap <C-h>     <ESC><C-h>
 inoremap <C-j>     <ESC><C-j>
 inoremap <C-k>     <ESC><C-k>

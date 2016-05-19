@@ -1,16 +1,37 @@
 #/bin/env sh
-PATH=$(dirname "${BASH_SOURCE[0]}")
+echo "Please provide a github api token for homebrew:"
+read HOMEBREW_GITHUB_API_TOKEN
+export HOMEBREW_GITHUB_API_TOKEN
+
+echo "Installing homebrew & some packages"
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew install cask zsh yubikey-personalization neovim git
+brew cask install iterm2 google-chrome flux franz gpgtools moom istat-menus wireshark ack wget
+
+echo "Setup dotfiles repo"
+mkdir ~/Projects
+cd ~/Projects
+git clone https://github.com/holstvoogd/dotfiles dotfiles
+cd dotfiles
 git submodule update -i
-ln -s $PATH/vimrc ~/.vimrc
-ln -s $PATH/vim ~/.vim
-ln -s $PATH/zshrc ~/.zshrc
-ln -s $PATH/tmux.conf ~/.tmux.conf
-ln -s $PATH/rdelange.zsh-theme ~/.oh-my-zsh/themes/rdelange.zsh-theme
-ln -s $PATH/gitignore ~/.gitignore
-# link nvim
-if [[ -f /usr/local/bin/nvim ]]; then
-  mkdir -p ${XDG_CONFIG_HOME:=$HOME/.config}
-  ln -s ~/.vim $XDG_CONFIG_HOME/nvim
-  ln -s ~/.vimrc $XDG_CONFIG_HOME/nvim/init.vim
-  ln -s /usr/local/bin/nvim /usr/local/bin/vim
-fi
+
+echo "Linking dotfiles"
+ln -s vimrc ~/.vimrc
+ln -s vim ~/.vim
+ln -s zshrc ~/.zshrc
+ln -s tmux.conf ~/.tmux.conf
+ln -s rdelange.zsh-theme ~/.oh-my-zsh/themes/rdelange.zsh-theme
+ln -s gitignore ~/.gitignore
+
+echo "export HOMEBREW_GITHUB_API_TOKEN=${HOMEBREW_GITHUB_API_TOKEN}" >> ~/.secrets.env
+
+echo "Linking nvim"
+ln -s ~/.vim $XDG_CONFIG_HOME/nvim
+ln -s ~/.vimrc $XDG_CONFIG_HOME/nvim/init.vim
+ln -s $(which nvim) /usr/local/bin/vim
+
+echo "Importing gpg keys"
+gpg2 --keyserver hkp://pgp.mit.edu --fetch-keys 8F568196
+grep -q enable-ssh-support ~/.gnupg/gpg-agent.conf || echo enable-ssh-support >>  ~/.gnupg/gpg-agent.conf
+
+echo "Aaaaaaand it done!"
