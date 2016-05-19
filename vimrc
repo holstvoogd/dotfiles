@@ -57,7 +57,12 @@ call togglebg#map("<F5>")
 cnoremap sudow w !sudo tee % >/dev/null
 
 " ================ Window navigation ================
-" Allow in interactive mode
+" Uses vim-tmux-navigator defaults on hjkl/
+nnoremap <silent> <c-Left> :TmuxNavigateLeft<cr>
+nnoremap <silent> <c-Down> :TmuxNavigateDown<cr>
+nnoremap <silent> <c-Up> :TmuxNavigateUp<cr>
+nnoremap <silent> <c-Right> :TmuxNavigateRight<cr>
+
 inoremap <C-h>     <ESC><C-h>
 inoremap <C-j>     <ESC><C-j>
 inoremap <C-k>     <ESC><C-k>

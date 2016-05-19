@@ -16,12 +16,13 @@ cd dotfiles
 git submodule update -i
 
 echo "Linking dotfiles"
-ln -s vimrc ~/.vimrc
-ln -s vim ~/.vim
-ln -s zshrc ~/.zshrc
-ln -s tmux.conf ~/.tmux.conf
-ln -s rdelange.zsh-theme ~/.oh-my-zsh/themes/rdelange.zsh-theme
-ln -s gitignore ~/.gitignore
+ln -s ~/Projects/dotfiles/vimrc ~/.vimrc
+ln -s ~/Projects/dotfiles/vim ~/.vim
+ln -s ~/Projects/dotfiles/zshrc ~/.zshrc
+ln -s ~/Projects/dotfiles/tmux.conf ~/.tmux.conf
+ln -s ~/Projects/dotfiles/rdelange.zsh-theme ~/.oh-my-zsh/themes/rdelange.zsh-theme
+ln -s ~/Projects/dotfiles/gitignore ~/.gitignore
+ln -s ~/Projects/dotfiles/gitconfig ~/.gitconfig
 
 echo "export HOMEBREW_GITHUB_API_TOKEN=${HOMEBREW_GITHUB_API_TOKEN}" >> ~/.secrets.env
 
