@@ -54,6 +54,7 @@ export PATH=/usr/local/bin:/usr/local/sbin:~/bin:/usr/bin:/bin:/usr/sbin:/sbin:/
 # export MANPATH="/usr/local/man:$MANPATH"
 
 source $ZSH/oh-my-zsh.sh
+source ~/.secrets.env
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
@@ -97,3 +98,10 @@ fi
 if [ -d "${HOME}/kube-cluster/bin" ]; then
   export PATH="${HOME}/kube-cluster/bin":$PATH
 fi
+
+source $ZSH/custom/kubectl.zsh
+
+eval "$(direnv hook zsh)"
+
+export GOPATH=~/Projects/go
+export PATH=$PATH:$GOPATH/bin

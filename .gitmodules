@@ -70,3 +70,9 @@
 [submodule "vim/bundle/vim-go"]
 	path = vim/bundle/vim-go
 	url = https://github.com/fatih/vim-go.git
+[submodule "vim/bundle/hexmode"]
+	path = vim/bundle/hexmode
+	url = https://github.com/fidian/hexmode.git
+[submodule "vim/bundle/haskell-vim"]
+	path = vim/bundle/haskell-vim
+	url = https://github.com/neovimhaskell/haskell-vim.git

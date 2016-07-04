@@ -5,7 +5,7 @@ export HOMEBREW_GITHUB_API_TOKEN
 
 echo "Installing homebrew & some packages"
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-brew install cask zsh yubikey-personalization neovim git
+brew install cask zsh yubikey-personalization neovim git direnv
 brew cask install iterm2 google-chrome flux franz gpgtools moom istat-menus wireshark ack wget
 
 echo "Setup dotfiles repo"
@@ -21,10 +21,12 @@ ln -s ~/Projects/dotfiles/vim ~/.vim
 ln -s ~/Projects/dotfiles/zshrc ~/.zshrc
 ln -s ~/Projects/dotfiles/tmux.conf ~/.tmux.conf
 ln -s ~/Projects/dotfiles/rdelange.zsh-theme ~/.oh-my-zsh/themes/rdelange.zsh-theme
+ln -s ~/Projects/dotfiles/kubectl.zsh ~/.oh-my-zsh/custom/kubectl.zsh
 ln -s ~/Projects/dotfiles/gitignore ~/.gitignore
 ln -s ~/Projects/dotfiles/gitconfig ~/.gitconfig
 
 echo "export HOMEBREW_GITHUB_API_TOKEN=${HOMEBREW_GITHUB_API_TOKEN}" >> ~/.secrets.env
+chmod 200 ~/.secrets.env
 
 echo "Linking nvim"
 ln -s ~/.vim $XDG_CONFIG_HOME/nvim

@@ -1,0 +1,10 @@
+[user]
+	signingkey = 8F568196
+	email = arthurholstvoogd@me.com
+	name = Arthur Holstvoogd
+[commit]
+	gpgsign = false
+[push]
+	default = simple
+[stash]
+	gpgsign = false
