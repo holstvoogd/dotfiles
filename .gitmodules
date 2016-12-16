@@ -76,3 +76,6 @@
 [submodule "vim/bundle/haskell-vim"]
 	path = vim/bundle/haskell-vim
 	url = https://github.com/neovimhaskell/haskell-vim.git
+[submodule "vim/bundle/vim-hclfmt"]
+	path = vim/bundle/vim-hclfmt
+	url = git@github.com:fatih/vim-hclfmt.git

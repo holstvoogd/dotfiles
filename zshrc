@@ -45,7 +45,7 @@ ZSH_THEME="rdelange"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(cp git osx rsync autojump)
+plugins=(cp git osx)
 
 # User configuration
 
@@ -95,13 +95,5 @@ if [ -f "${HOME}/.gpg-agent-info" ]; then
   export SSH_AGENT_PID
 fi
 
-if [ -d "${HOME}/kube-cluster/bin" ]; then
-  export PATH="${HOME}/kube-cluster/bin":$PATH
-fi
-
-source $ZSH/custom/kubectl.zsh
-
 eval "$(direnv hook zsh)"
 
-export GOPATH=~/Projects/go
-export PATH=$PATH:$GOPATH/bin

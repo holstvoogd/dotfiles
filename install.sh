@@ -5,8 +5,9 @@ export HOMEBREW_GITHUB_API_TOKEN
 
 echo "Installing homebrew & some packages"
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-brew install cask zsh yubikey-personalization neovim git direnv
-brew cask install iterm2 google-chrome flux franz gpgtools moom istat-menus wireshark ack wget
+brew update
+brew install cask zsh yubikey-personalization neovim git pass mtr watch ruby ghc awscli postgresql pwgen ack wget
+brew cask install iterm2 google-chrome flux gpgtools moom istat-menus wireshark yubico-authenticator yubikey-personalization-gui
 
 echo "Setup dotfiles repo"
 mkdir ~/Projects
@@ -36,5 +37,8 @@ ln -s $(which nvim) /usr/local/bin/vim
 echo "Importing gpg keys"
 gpg2 --keyserver hkp://pgp.mit.edu --fetch-keys 8F568196
 grep -q enable-ssh-support ~/.gnupg/gpg-agent.conf || echo enable-ssh-support >>  ~/.gnupg/gpg-agent.conf
+
+echo "Setup password management"
+git clone git@github.com:holstvoogd/password-store.git ~/.password-store
 
 echo "Aaaaaaand it done!"
