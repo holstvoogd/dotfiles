@@ -22,7 +22,6 @@ ln -s ~/Projects/dotfiles/vim ~/.vim
 ln -s ~/Projects/dotfiles/zshrc ~/.zshrc
 ln -s ~/Projects/dotfiles/tmux.conf ~/.tmux.conf
 ln -s ~/Projects/dotfiles/rdelange.zsh-theme ~/.oh-my-zsh/themes/rdelange.zsh-theme
-ln -s ~/Projects/dotfiles/kubectl.zsh ~/.oh-my-zsh/custom/kubectl.zsh
 ln -s ~/Projects/dotfiles/gitignore ~/.gitignore
 ln -s ~/Projects/dotfiles/gitconfig ~/.gitconfig
 
@@ -40,5 +39,9 @@ grep -q enable-ssh-support ~/.gnupg/gpg-agent.conf || echo enable-ssh-support >>
 
 echo "Setup password management"
 git clone git@github.com:holstvoogd/password-store.git ~/.password-store
+
+echo "Switch dotfiles remote"
+git remote rm origin
+git remote add origin git@github.com:holstvoogd/dotfiles.git
 
 echo "Aaaaaaand it done!"
