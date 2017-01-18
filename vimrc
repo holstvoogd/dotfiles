@@ -190,8 +190,8 @@ let g:syntastic_puppet_puppet_args = "--parser future"
 " Nerdtree
 nnoremap <leader>d :NERDTreeToggle<cr>
 " Open nerdtree if no file loaded
-autocmd StdinReadPre * let s:std_in=1
-autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
+" autocmd StdinReadPre * let s:std_in=1
+" autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 " Close vim if only nerdtree is open on :q
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 

@@ -77,7 +77,7 @@ export EDITOR='vim'
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-export RUBY_GC_MALLOC_LIMIT=64000000
+#export RUBY_GC_MALLOC_LIMIT=64000000
 
 # Show VI mode
 export RPS1='$(vi_mode_prompt_info)'$RPS1
@@ -96,4 +96,4 @@ if [ -f "${HOME}/.gpg-agent-info" ]; then
 fi
 
 eval "$(direnv hook zsh)"
-
+eval "$(rbenv init -)"
