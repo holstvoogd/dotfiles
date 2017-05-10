@@ -79,3 +79,6 @@
 [submodule "vim/bundle/vim-hclfmt"]
 	path = vim/bundle/vim-hclfmt
 	url = git@github.com:fatih/vim-hclfmt.git
+[submodule "vim/bundle/command-t"]
+	path = vim/bundle/command-t
+	url = https://github.com/wincent/command-t.git

@@ -200,29 +200,8 @@ nnoremap <leader>T :Tabularize /=><CR>
 
 nnoremap <C-w> :Bdelete<CR>
 
-" Fuzzy Finder
-noremap <Leader>f :FufFileWithCurrentBufferDir<CR>
-noremap <Leader>F :FufFile<CR>
-noremap <Leader>v :FufCoverageFile<CR>
-noremap <Leader>b :FufBuffer<CR>
-noremap <Leader>c :FufDirWithFullCwd<CR>
-noremap <F1> :FufHelp<CR>
+nnoremap <C-S-t> :CommandT<cr>
+nmap <silent> <Leader>f <Plug>(CommandT)
+nmap <silent> <Leader>b <Plug>(CommandTBuffer)
+nmap <silent> <Leader>j <Plug>(CommandTJump)
 
-" eyaml helper
-function EyamlEncrypt()
-  " Yank current or last selection to register x
-  normal! gv"xy
-
-  "put the content of register x through the eyaml binary and do some magic voodoo to it reg x
-  let shellcmd = 'eyaml encrypt --stdin 2>&1 | grep -v "\[hiera" | grep "^string"  | cut -c9-'
-  let output=system(shellcmd, @x)
-
-  " strip newlines from output and put in register x
-  let @x = substitute(output, '[\r\n]*$', '', '')
-
-  "re-select area and paste register x
-  normal! gv"xp
-
-endfunction
-
-map <F3> :call EyamlEncrypt() <CR>

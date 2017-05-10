@@ -2,11 +2,30 @@
 	signingkey = 8F568196
 	email = arthurholstvoogd@me.com
 	name = Arthur Holstvoogd
-[commit]
-	gpgsign = false
-[push]
-	default = simple
 [stash]
 	gpgsign = false
 [alias]
 	grog = log --graph --abbrev-commit --decorate --all --format=format:\"%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(dim white) - %an%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n %C(white)%s%C(reset)\"
+	commend = commit --amend --no-edit
+  prune = fetch --prune
+  undo = reset --soft HEAD^
+  stash-all = stash save --include-untracked
+  glog = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+[merge]
+  ff = only
+  conflictstyle = diff3
+[commit]
+  gpgSign = true
+[push]
+  default = simple
+  followTags = true
+[status]
+  showUntrackedFiles = all
+[transfer]
+  fsckobjects = true
+[diff]
+  tool = icdiff
+[difftool]
+  prompt = false
+[difftool "icdiff"]
+  cmd = /usr/local/bin/icdiff --line-numbers $LOCAL $REMOTE

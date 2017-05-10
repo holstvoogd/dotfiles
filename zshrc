@@ -97,3 +97,28 @@ fi
 
 eval "$(direnv hook zsh)"
 eval "$(rbenv init -)"
+
+workon() {
+  if [[ -z $2 ]]; then
+    name=$1
+    cd $(pwd | egrep '.*/Projects/\w+' -o)
+  else
+    name=$2
+    cd ~/Projects/$1
+  fi
+  git fetch -p
+  git worktree add $name
+  cd $name
+  if [[ -f .envrc ]]; then
+    direnv allow
+  fi
+  git reset --hard origin/HEAD
+
+  # setup db
+  ln -sf ../../database.yml config/database.yml
+}
+
+cleanup_worktrees() {
+  gbda 2>&1 | grep 'checked out at' | awk '{print $NF}' | xargs rm -rf
+  git worktree prune
+}
