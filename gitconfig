@@ -15,7 +15,7 @@
   ff = only
   conflictstyle = diff3
 [commit]
-  gpgSign = true
+  gpgSign = false
 [push]
   default = simple
   followTags = true

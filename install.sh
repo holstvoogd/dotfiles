@@ -3,15 +3,37 @@ echo "Please provide a github api token for homebrew:"
 read HOMEBREW_GITHUB_API_TOKEN
 export HOMEBREW_GITHUB_API_TOKEN
 
-echo "Installing homebrew & some packages"
-if [[ ! -x $(which brew) ]]; then
-  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+packages=(
+    ack \
+    awscli \
+    curl \
+    direnv
+    git \
+    gpg2 \
+    mtr \
+    pwgen \
+    rbenv \
+    tmux \
+    vim \
+    watch \
+    wget \
+    zsh
+  )
+
+if [[ $(uname)=="Darwin" ]]; then
+  echo "Installing homebrew & some packages"
+  if [[ ! -x $(which brew) ]]; then
+    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  fi
+  brew update
+  brew tap neovim/neovim
+  brew install cask yubikey-personalization neovim ghc postgresql $packages
+  brew cask install iterm2 google-chrome flux gpgtools moom istat-menus wireshark yubico-authenticator yubikey-personalization-gui
+  rbenv install
+else
+  package_manager=$(which yum apt-get 2>/dev/null)
+  sudo $package_manager install -y $packages
 fi
-brew update
-brew tap neovim/neovim
-brew install cask zsh yubikey-personalization neovim git pass mtr watch rbenv ghc awscli postgresql pwgen ack wget direnv
-brew cask install iterm2 google-chrome flux gpgtools moom istat-menus wireshark yubico-authenticator yubikey-personalization-gui
-rbenv install
 
 echo "Setup dotfiles repo"
 mkdir ~/Projects
@@ -40,9 +62,6 @@ ln -s $(which nvim) /usr/local/bin/vim
 echo "Importing gpg keys"
 gpg2 --keyserver hkp://pgp.mit.edu --fetch-keys 8F568196
 grep -q enable-ssh-support ~/.gnupg/gpg-agent.conf || echo enable-ssh-support >>  ~/.gnupg/gpg-agent.conf
-
-echo "Setup password management"
-git clone git@gitlab.com:holstvoogd/password-store.git ~/.password-store
 
 echo "Switch dotfiles remote"
 git remote rm origin
