@@ -45,7 +45,7 @@ ZSH_THEME="rdelange"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(cp git osx)
+plugins=(cp git osx vi-mode)
 
 # User configuration
 
@@ -82,10 +82,6 @@ export EDITOR='vim'
 # Show VI mode
 export RPS1='$(vi_mode_prompt_info)'$RPS1
 
-# Key bindings
-bindkey -M vicmd '/' history-incremental-search-backward
-bindkey '^r' history-incremental-search-backward
-
 source $ZSH/lib/key-bindings.zsh
 
 if [ -f "${HOME}/.gpg-agent-info" ]; then
@@ -95,8 +91,12 @@ if [ -f "${HOME}/.gpg-agent-info" ]; then
   export SSH_AGENT_PID
 fi
 
-eval "$(direnv hook zsh)"
-eval "$(rbenv init -)"
+if hash direnv >/dev/null 2>&1; then
+  eval "$(direnv hook zsh)"
+fi
+if hash rbenv >/dev/null 2>&1; then
+  eval "$(rbenv init -)"
+fi
 
 workon() {
   if [[ -z $2 ]]; then
@@ -122,3 +122,6 @@ cleanup_worktrees() {
   gbda 2>&1 | grep 'checked out at' | awk '{print $NF}' | xargs rm -rf
   git worktree prune
 }
+
+# Disable spring
+export DISABLE_SPRING=1

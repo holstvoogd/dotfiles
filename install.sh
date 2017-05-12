@@ -7,12 +7,10 @@ packages=(
     ack \
     awscli \
     curl \
-    direnv
     git \
     gpg2 \
     mtr \
     pwgen \
-    rbenv \
     tmux \
     vim \
     watch \
@@ -26,14 +24,20 @@ if [[ $(uname)=="Darwin" ]]; then
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   fi
   brew update
-  brew tap neovim/neovim
-  brew install cask yubikey-personalization neovim ghc postgresql $packages
-  brew cask install iterm2 google-chrome flux gpgtools moom istat-menus wireshark yubico-authenticator yubikey-personalization-gui
+  brew install cask yubikey-personalization ghc postgresql redis direnv rbenv $packages
+  brew cask install iterm2 google-chrome flux gpgtools moom istat-menus wireshark
   rbenv install
 else
+  echo "Installing packages"
   package_manager=$(which yum apt-get 2>/dev/null)
   sudo $package_manager install -y $packages
 fi
+
+echo "Install oh-my-zsh"
+if hash chsh >/dev/null 2>&1; then
+  sudo chsh -s $(grep /zsh$ /etc/shells | tail -1) $(whoami)
+fi
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 
 echo "Setup dotfiles repo"
 mkdir ~/Projects
@@ -53,11 +57,6 @@ ln -nsf ~/Projects/dotfiles/iterm2 ~/.iterm2
 
 echo "export HOMEBREW_GITHUB_API_TOKEN=${HOMEBREW_GITHUB_API_TOKEN}" >> ~/.secrets.env
 chmod 400 ~/.secrets.env
-
-echo "Linking nvim"
-ln -s ~/.vim ~/.config/nvim
-ln -s ~/.vimrc ~/.config/nvim/init.vim
-ln -s $(which nvim) /usr/local/bin/vim
 
 echo "Importing gpg keys"
 gpg2 --keyserver hkp://pgp.mit.edu --fetch-keys 8F568196

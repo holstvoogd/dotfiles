@@ -6,7 +6,7 @@ call pathogen#infect()
 call pathogen#helptags()
 
 filetype on
-filetype indent off
+filetype indent on
 filetype plugin on
 
 " ================ General Config ====================
@@ -108,9 +108,11 @@ noremap <C-S-Left> :bprevious<cr>
 " ================== Mouse enabled! =================
 if has('mouse') && !has('nvim')
   set mouse=a
-  if &term =~ "xterm" || &term =~ "screen"
+  if has("mouse_sgr")
+    set ttymouse=sgr
+  else
     set ttymouse=xterm2
-  endif
+  end
 endif
 
 " ================ Turn Off Swap Files ==============
@@ -132,6 +134,8 @@ endif
 
 " ================ Indentation ======================
 
+set autoindent
+set smartindent
 set smarttab
 set shiftwidth=2
 set softtabstop=2
@@ -139,7 +143,9 @@ set tabstop=2
 set expandtab
 
 " Display tabs and trailing spaces visually
-set list listchars=tab:\ \ ,trail:·
+"set showbreak=↪\
+set list
+set listchars=tab:→\ ,nbsp:␣,trail:•,extends:⟩,precedes:⟨
 
 set nowrap       "Don't wrap lines
 set linebreak    "Wrap lines at convenient points
