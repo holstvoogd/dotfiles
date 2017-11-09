@@ -123,5 +123,23 @@ cleanup_worktrees() {
   git worktree prune
 }
 
+dbreset() {
+  tgt=$1
+  src=${tgt:s/_development/_backup}
+  read -q "REPLY?Dropping $tgt, recreating from $src. Are you sure? (y/n) "
+  if [ $REPLY = 'y' ]; then
+    if [ "$( psql -tAc "SELECT 1 FROM pg_database WHERE datname='$src'" postgres )" = '1' ]; then
+      echo "\nResetting db..."
+      dropdb $tgt && createdb $tgt -T $src
+    else
+      echo "\nTemplate db $src not found!"
+      exit 1
+    fi
+  fi
+}
+
 # Disable spring
 export DISABLE_SPRING=1
+
+alias e=vim
+alias :e=vim

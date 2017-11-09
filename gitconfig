@@ -17,7 +17,6 @@
 [commit]
   gpgSign = false
 [push]
-  default = simple
   followTags = true
 [status]
   showUntrackedFiles = all
