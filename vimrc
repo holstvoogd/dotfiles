@@ -45,13 +45,13 @@ set laststatus=2
 let g:airline_powerline_fonts=1
 
 " Configure theme
-if $ITERM_PROFILE =~ 'Dark'
-  set background=dark
-else
-  set background=light
-endif
-colorscheme solarized
-call togglebg#map("<F5>")
+" if $ITERM_PROFILE =~ 'Dark'
+"   set background=dark
+" else
+"   set background=light
+" endif
+" colorscheme solarized
+" call togglebg#map("<F5>")
 
 " Write with sudo command
 cnoremap sudow w !sudo tee % >/dev/null
