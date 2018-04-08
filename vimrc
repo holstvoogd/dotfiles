@@ -50,6 +50,7 @@ if $ITERM_PROFILE =~ 'Dark'
 else
   set background=light
 endif
+
 colorscheme solarized
 call togglebg#map("<F5>")
 
@@ -57,12 +58,6 @@ call togglebg#map("<F5>")
 cnoremap sudow w !sudo tee % >/dev/null
 
 " ================ Window navigation ================
-" Uses vim-tmux-navigator defaults on hjkl/
-nnoremap <silent> <c-Left> :TmuxNavigateLeft<cr>
-nnoremap <silent> <c-Down> :TmuxNavigateDown<cr>
-nnoremap <silent> <c-Up> :TmuxNavigateUp<cr>
-nnoremap <silent> <c-Right> :TmuxNavigateRight<cr>
-
 inoremap <C-h>     <ESC><C-h>
 inoremap <C-j>     <ESC><C-j>
 inoremap <C-k>     <ESC><C-k>
@@ -93,11 +88,11 @@ noremap <C-t> :enew<cr>
 
 " Move to the next buffer
 nmap <leader>l :bnext<CR>
-noremap <C-S-Right> :bnext<cr>
+noremap <C-Right> :bnext<cr>
 
 " Move to the previous buffer
 nmap <leader>h :bprevious<CR>
-noremap <C-S-Left> :bprevious<cr>
+noremap <C-Left> :bprevious<cr>
 
 " tabs
 "nnoremap <C-t> :tabnew<CR>
@@ -205,9 +200,4 @@ autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTree
 nnoremap <leader>T :Tabularize /=><CR>
 
 nnoremap <C-w> :Bdelete<CR>
-
-nnoremap <C-S-t> :CommandT<cr>
-nmap <silent> <Leader>f <Plug>(CommandT)
-nmap <silent> <Leader>b <Plug>(CommandTBuffer)
-nmap <silent> <Leader>j <Plug>(CommandTJump)
 

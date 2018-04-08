@@ -5,7 +5,7 @@ export ZSH=$HOME/.oh-my-zsh
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-ZSH_THEME="rdelange"
+# ZSH_THEME="rdelange"
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -45,7 +45,7 @@ ZSH_THEME="rdelange"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(cp git osx vi-mode)
+plugins=(cp git osx )
 
 # User configuration
 
@@ -80,16 +80,9 @@ export EDITOR='vim'
 #export RUBY_GC_MALLOC_LIMIT=64000000
 
 # Show VI mode
-export RPS1='$(vi_mode_prompt_info)'$RPS1
+# export RPS1='$(vi_mode_prompt_info)'$RPS1
 
 source $ZSH/lib/key-bindings.zsh
-
-if [ -f "${HOME}/.gpg-agent-info" ]; then
-  . "${HOME}/.gpg-agent-info"
-  export GPG_AGENT_INFO
-  export SSH_AUTH_SOCK
-  export SSH_AGENT_PID
-fi
 
 if hash direnv >/dev/null 2>&1; then
   eval "$(direnv hook zsh)"
