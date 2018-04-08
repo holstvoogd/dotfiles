@@ -1,0 +1,3 @@
+URxvt.font: xft:inconsolata:size=10
+#URxvt.letterSpace: -0.5
+Xft.antialias: true
