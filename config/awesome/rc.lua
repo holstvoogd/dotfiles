@@ -58,20 +58,7 @@ end
 
 -- {{{ Variable definitions
 
-local themes = {
-    "blackburn",       -- 1
-    "copland",         -- 2
-    "dremora",         -- 3
-    "holo",            -- 4
-    "multicolor",      -- 5
-    "powerarrow",      -- 6
-    "powerarrow-dark", -- 7
-    "rainbow",         -- 8
-    "steamburn",       -- 9
-    "vertex",          -- 10
-}
-
-local chosen_theme = themes[6]
+local chosen_theme = "powerarrow"
 local modkey       = "Mod4"
 local altkey       = "Mod1"
 local terminal     = "urxvt"
@@ -79,7 +66,7 @@ local editor       = os.getenv("EDITOR") or "nano"
 -- local gui_editor   = "gvim"
 -- local browser      = "chromium-browser"
 -- local guieditor    = "atom"
-local scrlocker    = "xlock"
+local scrlocker    = "i3lock"
 
 awful.util.terminal = terminal
 awful.util.tagnames = { "1", "2", "3", "4", "5" }
