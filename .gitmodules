@@ -16,9 +16,6 @@
 [submodule "vim/bundle/vim-git"]
 	path = vim/bundle/vim-git
 	url = https://github.com/tpope/vim-git
-[submodule "vim/bundle/vim-puppet"]
-	path = vim/bundle/vim-puppet
-	url = https://github.com/rodjek/vim-puppet
 [submodule "vim/bundle/vim-surround"]
 	path = vim/bundle/vim-surround
 	url = https://github.com/tpope/vim-surround
@@ -58,9 +55,6 @@
 [submodule "vim/bundle/vim-bbye"]
 	path = vim/bundle/vim-bbye
 	url = https://github.com/moll/vim-bbye.git
-[submodule "vim/bundle/vim-tmux-navigator"]
-	path = vim/bundle/vim-tmux-navigator
-	url = https://github.com/christoomey/vim-tmux-navigator
 [submodule "vim/bundle/vim-ack"]
 	path = vim/bundle/vim-ack
 	url = https://github.com/mileszs/ack.vim
@@ -73,15 +67,9 @@
 [submodule "vim/bundle/hexmode"]
 	path = vim/bundle/hexmode
 	url = https://github.com/fidian/hexmode.git
-[submodule "vim/bundle/haskell-vim"]
-	path = vim/bundle/haskell-vim
-	url = https://github.com/neovimhaskell/haskell-vim.git
 [submodule "vim/bundle/vim-hclfmt"]
 	path = vim/bundle/vim-hclfmt
 	url = git@github.com:fatih/vim-hclfmt.git
-[submodule "vim/bundle/command-t"]
-	path = vim/bundle/command-t
-	url = https://github.com/wincent/command-t.git
 [submodule "vim/bundle/vim-slim"]
 	path = vim/bundle/vim-slim
 	url = https://github.com/slim-template/vim-slim.git
