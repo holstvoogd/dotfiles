@@ -29,7 +29,6 @@ noremap Y y$
 "Fix backspace
 nnoremap <BS> dh
 
-
 " This makes vim act like all other editors, buffers can
 " exist in the background without being in a window.
 " http://items.sjbach.com/319/configuring-vim-right
@@ -58,15 +57,13 @@ call togglebg#map("<F5>")
 cnoremap sudow w !sudo tee % >/dev/null
 
 " ================ Window navigation ================
-inoremap <C-h>     <ESC><C-h>
-inoremap <C-j>     <ESC><C-j>
-inoremap <C-k>     <ESC><C-k>
-inoremap <C-l>     <ESC><C-l>
-inoremap <C-\>     <ESC><C-\>
-inoremap <C-Left>  <ESC><C-h>
-inoremap <C-Down>  <ESC><C-j>
-inoremap <C-Up>    <ESC><C-k>
-inoremap <C-Right> <ESC><C-l>
+nnoremap <C-Left>  <C-W><C-H>
+nnoremap <C-Down>  <C-W><C-J>
+nnoremap <C-Up>    <C-W><C-K>
+nnoremap <C-Right> <C-W><C-L>
+
+set splitbelow
+set splitright
 
 " ================= Buffers & tabs ====================
 let g:airline#extensions#bufferline#enabled=0
@@ -83,22 +80,16 @@ set hidden
 
 " To open a new empty buffer
 " This replaces :tabnew which I used to bind to this mapping
-nmap <leader>t :enew<cr>
 noremap <C-t> :enew<cr>
 
 " Move to the next buffer
-nmap <leader>l :bnext<CR>
-noremap <C-Right> :bnext<cr>
+noremap <C-S-Right> :bnext<cr>
 
 " Move to the previous buffer
-nmap <leader>h :bprevious<CR>
-noremap <C-Left> :bprevious<cr>
+noremap <C-S-Left> :bprevious<cr>
 
-" tabs
-"nnoremap <C-t> :tabnew<CR>
-"nnoremap <C-d> :tabclose<CR>
-"nmap <S-Right> gt
-"nmap <S-Left> gT
+" Close buffer
+nnoremap <C-w> :Bdelete<CR>
 
 " ================== Mouse enabled! =================
 if has('mouse') && !has('nvim')
@@ -109,12 +100,6 @@ if has('mouse') && !has('nvim')
     set ttymouse=xterm2
   end
 endif
-
-" ================ Turn Off Swap Files ==============
-
-"set swapfile
-"set nobackup
-"set nowb
 
 " ================ Persistent Undo ==================
 " Keep undo history across sessions, by storing in file.
@@ -144,10 +129,10 @@ set listchars=tab:→\ ,nbsp:␣,trail:•,extends:⟩,precedes:⟨
 
 set nowrap       "Don't wrap lines
 set linebreak    "Wrap lines at convenient points
+
 "Toggle word wrap
 nnoremap <leader>w :set wrap!<cr>
 
-nmap <C-i> msgg=G`s
 
 " ================ Folds ============================
 
@@ -185,8 +170,6 @@ set smartcase       " ...unless we type a capital
 nmap <silent> <C-c> :silent noh<CR>
 
 " ================ Plugins ==========================
-" Let syntastic use Puppet future parser
-let g:syntastic_puppet_puppet_args = "--parser future"
 
 " Nerdtree
 nnoremap <leader>d :NERDTreeToggle<cr>
@@ -195,9 +178,4 @@ nnoremap <leader>d :NERDTreeToggle<cr>
 " autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 " Close vim if only nerdtree is open on :q
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
-
-" tabular: align Puppet stanzas
-nnoremap <leader>T :Tabularize /=><CR>
-
-nnoremap <C-w> :Bdelete<CR>
 
