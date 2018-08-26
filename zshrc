@@ -45,13 +45,15 @@ ZSH_THEME="rdelange"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(cp git osx )
+plugins=(cp git osx)
 
 # User configuration
 
 #export PATH=$HOME/bin:/usr/local/bin:$PATH
 export PATH=/usr/local/bin:/usr/local/sbin:~/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:$PATH
 # export MANPATH="/usr/local/man:$MANPATH"
+export GOPATH=~/Projects/go
+export PATH=$GOPATH/bin:$PATH
 
 source $ZSH/oh-my-zsh.sh
 source ~/.secrets.env
