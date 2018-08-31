@@ -15,16 +15,17 @@
   ff = only
   conflictstyle = diff3
 [commit]
-  gpgSign = false
+	gpgSign = true
 [push]
   followTags = true
 [status]
   showUntrackedFiles = all
 [transfer]
   fsckobjects = true
-[diff]
-  tool = icdiff
-[difftool]
-  prompt = false
-[difftool "icdiff"]
-  cmd = /usr/local/bin/icdiff --line-numbers $LOCAL $REMOTE
+[pager]
+  diff = diff-so-fancy | less --tabs=1,5 -RFX
+  show = diff-so-fancy | less --tabs=1,5 -RFX
+[gpg]
+	program = /usr/local/bin/krgpg
+[tag]
+	forceSignAnnotated = true

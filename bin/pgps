@@ -1,0 +1,2 @@
+#!/bin/sh
+ps aux | egrep '(RSS|postgres)' | grep -v grep

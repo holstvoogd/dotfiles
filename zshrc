@@ -5,7 +5,7 @@ export ZSH=$HOME/.oh-my-zsh
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-ZSH_THEME="rdelange"
+#ZSH_THEME="rdelange"
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -138,3 +138,15 @@ export DISABLE_SPRING=1
 
 alias e=vim
 alias :e=vim
+
+alias du="ncdu --color dark -rr -x"
+alias preview="fzf --preview 'bat --color \"always\" {}'"
+# add support for ctrl+o to open selected file in VS Code
+export FZF_DEFAULT_OPTS="--bind='ctrl-o:execute(code {})+abort'"
+alias cat='bat'
+alias ping='prettyping --nolegend'
+
+export BAT_THEME="Solarized (${(L)ITERM_PROFILE})"
+
+# Added by Krypton
+export GPG_TTY=$(tty)

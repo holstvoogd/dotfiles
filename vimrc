@@ -177,6 +177,9 @@ nmap <silent> <C-c> :silent noh<CR>
 " normal mode (after 1s; no delay when writing).
 call neomake#configure#automake('rw')
 
+" Disable whitespace checks in airline
+let g:airline#extensions#whitespace#enabled = 0
+
 " Nerdtree
 nnoremap <leader>d :NERDTreeToggle<cr>
 " Open nerdtree if no file loaded

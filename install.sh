@@ -9,10 +9,15 @@ fi
 
 packages=(
     ack \
+    bat \
     curl \
+    diff-so-fancy \
+    fzf \
     git \
     mtr \
+    prettyping \
     pwgen \
+    tldr \
     vim \
     watch \
     wget \
@@ -52,6 +57,7 @@ ln -nsf ~/Projects/dotfiles/vim       ~/.vim
 ln -nsf ~/Projects/dotfiles/gitignore ~/.gitignore
 ln -nsf ~/Projects/dotfiles/gitconfig ~/.gitconfig
 ln -nsf ~/Projects/dotfiles/iterm2    ~/.iterm2
+ln -nsf ~/Projects/dotfiles/bat       ~/Library/Preferences/bat
 
 if [ ! -f .secrets.env ]; then
   echo "export HOMEBREW_GITHUB_API_TOKEN=${HOMEBREW_GITHUB_API_TOKEN}" >> ~/.secrets.env
