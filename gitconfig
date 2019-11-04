@@ -2,8 +2,6 @@
 	signingkey = 8F568196
 	email = arthurholstvoogd@me.com
 	name = Arthur Holstvoogd
-[stash]
-	gpgsign = false
 [alias]
 	grog = log --graph --abbrev-commit --decorate --all --format=format:\"%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(dim white) - %an%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n %C(white)%s%C(reset)\"
 	commend = commit --amend --no-edit
@@ -15,17 +13,20 @@
   ff = only
   conflictstyle = diff3
 [commit]
-	gpgSign = true
+	gpgSign = false
 [push]
   followTags = true
 [status]
   showUntrackedFiles = all
 [transfer]
-  fsckobjects = true
+  fsckobjects = false
 [pager]
   diff = diff-so-fancy | less --tabs=1,5 -RFX
   show = diff-so-fancy | less --tabs=1,5 -RFX
-[gpg]
-	program = /usr/local/bin/krgpg
 [tag]
 	forceSignAnnotated = true
+[filter "lfs"]
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f

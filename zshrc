@@ -5,7 +5,7 @@ export ZSH=$HOME/.oh-my-zsh
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-#ZSH_THEME="rdelange"
+ZSH_THEME="rdelange"
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -114,8 +114,10 @@ workon() {
 }
 
 cleanup_worktrees() {
-  gbda 2>&1 | grep 'checked out at' | awk '{print $NF}' | xargs rm -rf
+  git fetch -p
+  gbda 2>&1 | grep 'checked out at' | awk '{print $NF}' | egrep -v 'staging|master'  | xargs rm -rf
   git worktree prune
+  gbda 2>&1
 }
 
 dbreset() {
@@ -133,17 +135,24 @@ dbreset() {
   fi
 }
 
+rgv() {
+  vim $(rg $1 -l)
+}
+
 # Disable spring
 export DISABLE_SPRING=1
 
 alias e=vim
 alias :e=vim
 
+alias bem='bundle exec m'
+alias be='bundle exec'
+alias rr='bundle exec do rails'
+
 alias du="ncdu --color dark -rr -x"
 alias preview="fzf --preview 'bat --color \"always\" {}'"
 # add support for ctrl+o to open selected file in VS Code
 export FZF_DEFAULT_OPTS="--bind='ctrl-o:execute(code {})+abort'"
-alias cat='bat'
 alias ping='prettyping --nolegend'
 
 export BAT_THEME="Solarized (${(L)ITERM_PROFILE})"
