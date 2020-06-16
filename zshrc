@@ -136,18 +136,18 @@ dbreset() {
 }
 
 rgv() {
-  vim $(rg $1 -l)
+  vim $(rg $1 -l $2)
 }
 
 # Disable spring
-export DISABLE_SPRING=1
+# export DISABLE_SPRING=1
 
 alias e=vim
 alias :e=vim
 
 alias bem='bundle exec m'
 alias be='bundle exec'
-alias rr='bundle exec do rails'
+alias bb='bundle exec be'
 
 alias du="ncdu --color dark -rr -x"
 alias preview="fzf --preview 'bat --color \"always\" {}'"

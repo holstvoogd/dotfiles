@@ -1,5 +1,6 @@
 " enable all features
 set nocompatible
+set timeout timeoutlen=1000 ttimeoutlen=100
 
 " initialize pathogen
 call pathogen#infect()
