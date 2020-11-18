@@ -8,22 +8,17 @@ else
 fi
 
 packages=(
-    ack \
-    bat \
-    curl \
-    diff-so-fancy \
-    fzf \
-    git \
-    mtr \
-    prettyping \
-    pwgen \
-    tldr \
-    vim \
-    watch \
-    wget \
-    ncdu \
-    zsh
-  )
+curl \
+git \
+mtr \
+prettyping \
+pwgen \
+vim \
+watch \
+wget \
+ncdu \
+zsh
+)
 
 if [[ $(uname)=="Darwin" ]]; then
   echo "Installing homebrew & some packages"
@@ -45,9 +40,9 @@ if [ ! -f ~/Projects ]; then
 fi
 cd ~/Projects
 if [ ! -f ~/Projects/dotfiles ]; then
-	git clone https://github.com/holstvoogd/dotfiles dotfiles
-	cd dotfiles
-	git submodule update -i
+  git clone https://github.com/holstvoogd/dotfiles dotfiles
+  cd dotfiles
+  git submodule update -i
 fi
 
 echo "Linking dotfiles"
@@ -57,7 +52,6 @@ ln -nsf ~/Projects/dotfiles/vim       ~/.vim
 ln -nsf ~/Projects/dotfiles/gitignore ~/.gitignore
 ln -nsf ~/Projects/dotfiles/gitconfig ~/.gitconfig
 ln -nsf ~/Projects/dotfiles/iterm2    ~/.iterm2
-ln -nsf ~/Projects/dotfiles/bat       ~/Library/Preferences/bat
 
 if [ ! -f .secrets.env ]; then
   echo "export HOMEBREW_GITHUB_API_TOKEN=${HOMEBREW_GITHUB_API_TOKEN}" >> ~/.secrets.env

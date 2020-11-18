@@ -45,7 +45,7 @@ set laststatus=2
 let g:airline_powerline_fonts=1
 
 " Configure theme
-if $ITERM_PROFILE =~ 'Dark'
+if $ITERM_PROFILE =~ 'Dark' || $VIM_PROFILE =~ 'Dark'
   set background=dark
 else
   set background=light
@@ -137,7 +137,6 @@ nnoremap <leader>w :set wrap!<cr>
 " tab? to reindent?
 nmap <C-i> msgg=G`s
 
-
 " ================ Folds ============================
 
 set foldmethod=indent   "fold based on indent
@@ -174,10 +173,6 @@ set smartcase       " ...unless we type a capital
 nmap <silent> <C-c> :silent noh<CR>
 
 " ================ Plugins ==========================
-" Full config: when writing or reading a buffer, and on changes in insert and
-" normal mode (after 1s; no delay when writing).
-call neomake#configure#automake('rw')
-
 " Disable whitespace checks in airline
 let g:airline#extensions#whitespace#enabled = 0
 
