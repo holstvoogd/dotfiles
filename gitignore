@@ -12,6 +12,8 @@ cache/
 doc/tags
 */*/*/doc/tags
 doc/tags-ja
+**/coverage*
+**/simplecov-results/**
 
 
 # OS generated files #

@@ -49,7 +49,7 @@ plugins=(cp git osx)
 
 # User configuration
 
-export PATH=/usr/local/bin:/usr/local/sbin:~/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:$PATH
+# export PATH=/usr/local/bin:/usr/local/sbin:~/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:$PATH
 
 source $ZSH/oh-my-zsh.sh
 source ~/.secrets.env
@@ -76,9 +76,10 @@ export DISABLE_SPRING=1
 alias e=vim
 alias :e=vim
 
-alias bem='bundle exec m'
 alias be='bundle exec'
 alias bb='bundle exec be'
 
 # Added by Krypton
 export GPG_TTY=$(tty)
+#export PATH="/usr/local/opt/terraform@0.12/bin:$PATH"
+#export PATH="/usr/local/opt/node@14/bin:$PATH"
