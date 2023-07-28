@@ -37,3 +37,12 @@
 [submodule "vim/bundle/vim-openscad"]
 	path = vim/bundle/vim-openscad
 	url = https://github.com/sirtaj/vim-openscad.git
+[submodule "vim/bundle/nui.nvim"]
+	path = vim/bundle/nui.nvim
+	url = https://github.com/MunifTanjim/nui.nvim
+[submodule "vim/bundle/plenary.nvim"]
+	path = vim/bundle/plenary.nvim
+	url = https://github.com/nvim-lua/plenary.nvim
+[submodule "vim/bundle/CodeGPT.nvim"]
+	path = vim/bundle/CodeGPT.nvim
+	url = https://github.com/dpayne/CodeGPT.nvim

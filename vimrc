@@ -183,4 +183,3 @@ nnoremap <leader>d :NERDTreeToggle<cr>
 " autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 " Close vim if only nerdtree is open on :q
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
-

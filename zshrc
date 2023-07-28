@@ -55,7 +55,7 @@ source $ZSH/oh-my-zsh.sh
 source ~/.secrets.env
 
 # Preferred editor
-export EDITOR='vim'
+export EDITOR='nvim'
 
 source $ZSH/lib/key-bindings.zsh
 
@@ -73,8 +73,10 @@ rgv() {
 # Disable spring
 export DISABLE_SPRING=1
 
-alias e=vim
-alias :e=vim
+alias vi=nvim
+alias vim=nvim
+alias e=nvim
+alias :e=nvim
 
 alias be='bundle exec'
 alias bb='bundle exec be'
@@ -83,3 +85,4 @@ alias bb='bundle exec be'
 export GPG_TTY=$(tty)
 #export PATH="/usr/local/opt/terraform@0.12/bin:$PATH"
 #export PATH="/usr/local/opt/node@14/bin:$PATH"
+
