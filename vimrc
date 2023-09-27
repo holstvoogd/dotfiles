@@ -51,7 +51,14 @@ else
   set background=light
 endif
 
+
+" Enable true colors if available
+set termguicolors
+" Enable italics, Make sure this is immediately after colorscheme
+" https://stackoverflow.com/questions/3494435/vimrc-make-comments-italic
+
 colorscheme solarized
+highlight Comment cterm=italic gui=italic
 call togglebg#map("<F5>")
 
 " Write with sudo command

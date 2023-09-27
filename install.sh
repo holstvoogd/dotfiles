@@ -11,9 +11,7 @@ packages=(
 curl \
 git \
 mtr \
-prettyping \
-pwgen \
-vim \
+nvim \
 watch \
 wget \
 ncdu \
@@ -27,7 +25,7 @@ if [[ $(uname)=="Darwin" ]]; then
   fi
   brew update
   brew install cask $packages
-  brew cask install wireshark 1password
+  brew cask install docker freetube digital
 else
   echo "Installing packages"
   package_manager=$(which yum apt-get 2>/dev/null)
