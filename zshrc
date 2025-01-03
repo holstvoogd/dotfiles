@@ -1,33 +1,62 @@
-# Path to your oh-my-zsh installation.
-export ZSH=$HOME/.oh-my-zsh
+# ~/.zshrc
 
-# Set name of the theme to load.
-# Look in ~/.oh-my-zsh/themes/
-# Optionally, if you set this to "random", it'll load a random theme each
-# time that oh-my-zsh is loaded.
-ZSH_THEME="rdelange"
-
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(cp git osx)
-
-# User configuration
-source $ZSH/oh-my-zsh.sh
-source ~/.secrets.env
-
-# Preferred editor
+# Core Settings
 export EDITOR='nvim'
+export VISUAL='nvim'
+export TERM="xterm-256color"
 
-source $ZSH/lib/key-bindings.zsh
+# History
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=10000
+SAVEHIST=10000
+setopt EXTENDED_HISTORY
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_VERIFY
+setopt SHARE_HISTORY
 
-if hash direnv >/dev/null 2>&1; then
-  eval "$(direnv hook zsh)"
+# Basic completion system
+autoload -Uz compinit
+compinit
+
+# Key bindings
+bindkey -e  # Emacs key bindings
+bindkey '^[[A' history-beginning-search-backward
+bindkey '^[[B' history-beginning-search-forward
+
+# Useful aliases
+alias vim='nvim'
+alias vi='nvim'
+alias ll='ls -la'
+alias la='ls -A'
+alias l='ls -CF'
+alias g='lazygit'
+alias t='tmux'
+alias ta='tmux attach'
+alias tn='tmux new -s'
+
+# Initialize starship prompt
+eval "$(starship init zsh)"
+
+# Initialize direnv
+eval "$(direnv hook zsh)"
+
+# FZF configuration
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"
+
+# Load local config if exists
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+
+# Auto-start tmux
+if [ -z "$TMUX" ]; then
+    # Attempt to attach to existing session
+    tmux attach 2>/dev/null
+
+    # If no existing session, create a new one
+    if [ $? -eq 1 ]; then
+        tmux new-session
+    fi
 fi
-
-rgv() {
-  vim $(rg -l $1 $2)
-}
-
-export PATH="/opt/homebrew/sbin:/opt/homebrew/bin:/usr/local/bin:/usr/local/sbin:~/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:$PATH"
