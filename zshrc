@@ -11,14 +11,14 @@ ZSH_THEME="rdelange"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(cp git osx)
+plugins=(cp git macos)
 
 # User configuration
 source $ZSH/oh-my-zsh.sh
 source ~/.secrets.env
 
 # Preferred editor
-export EDITOR='nvim'
+export EDITOR='vim'
 
 source $ZSH/lib/key-bindings.zsh
 
@@ -31,3 +31,5 @@ rgv() {
 }
 
 export PATH="/opt/homebrew/sbin:/opt/homebrew/bin:/usr/local/bin:/usr/local/sbin:~/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:$PATH"
+
+source ~/.zshrc.local
