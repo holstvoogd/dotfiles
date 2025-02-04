@@ -65,6 +65,7 @@ require("lazy").setup({
   "tpope/vim-repeat",
   "vim-ruby/vim-ruby",
   "godlygeek/tabular",
+  'MunifTanjim/nui.nvim',
 
   -- Solarized Light theme
   {
@@ -91,54 +92,114 @@ require("lazy").setup({
     end
   },
   
-  -- Modern file explorer
-  {
-    'nvim-tree/nvim-tree.lua',
-    dependencies = { 'nvim-tree/nvim-web-devicons' },
-    config = function()
-      vim.g.loaded_netrw = 1
-      vim.g.loaded_netrwPlugin = 1
-      
-      require('nvim-tree').setup({
-        view = {
-          adaptive_size = true,
-          side = "left",
-          width = 30,
-          preserve_window_proportions = true,
-        },
-        filesystem_watchers = {
-          enable = true,
-        },
-        actions = {
-          open_file = {
-            quit_on_open = false,
-            window_picker = {
-              enable = true,
-            },
-          },
-        },
-        filters = {
-          custom = { "^.git$" },
-        },
-        renderer = {
-          group_empty = true,
-          icons = {
-            show = {
-              file = true,
-              folder = true,
-              folder_arrow = true,
-              git = true,
-            },
-          },
-        },
-        git = {
-          enable = true,
-          ignore = false,
-        },
-      })
-    end,
+-- Modern file explorer
+{
+  'nvim-neo-tree/neo-tree.nvim',
+  branch = 'v2.x',
+  requires = { 
+    'nvim-lua/plenary.nvim',
+    'nvim-tree/nvim-web-devicons', -- optional, for file icons
+    'MunifTanjim/nui.nvim',
   },
+  config = function()
+    -- Unless you are still migrating, remove the deprecated commands from v1.x
+    vim.cmd([[ let g:neo_tree_remove_legacy_commands = 1 ]])
 
+    require('neo-tree').setup({
+      close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
+      popup_border_style = "rounded",
+      enable_git_status = true,
+      enable_diagnostics = true,
+      default_component_configs = {
+        indent = {
+          indent_size = 2,
+          padding = 1, -- extra padding on left hand side
+          with_markers = true,
+          indent_marker = "│",
+          last_indent_marker = "└",
+          highlight = "NeoTreeIndentMarker",
+        },
+        icon = {
+          folder_closed = "",
+          folder_open = "",
+          folder_empty = "",
+          default = "*",
+        },
+        modified = {
+          symbol = "[+]",
+          highlight = "NeoTreeModified",
+        },
+        name = {
+          trailing_slash = false,
+          use_git_status_colors = true,
+        },
+        git_status = {
+          symbols = {
+            -- Change type
+            added     = "✚",
+            modified  = "",
+            deleted   = "✖",
+            renamed   = "",
+            -- Status type
+            untracked = "",
+            ignored   = "",
+            unstaged  = "",
+            staged    = "",
+            conflict  = "",
+          },
+        },
+      },
+      window = {
+        position = "left",
+        width = 30,
+        mappings = {
+          ["<space>"] = "toggle_node",
+          ["<2-LeftMouse>"] = "open",
+          ["<cr>"] = "open",
+          ["S"] = "open_split",
+          ["s"] = "open_vsplit",
+          ["C"] = "close_node",
+          ["R"] = "refresh",
+          ["a"] = "add",
+          ["d"] = "delete",
+          ["r"] = "rename",
+          ["c"] = "copy_to_clipboard",
+          ["x"] = "cut_to_clipboard",
+          ["p"] = "paste_from_clipboard",
+          ["q"] = "close_window",
+        },
+      },
+      filesystem = {
+        filtered_items = {
+          visible = true,
+          hide_dotfiles = false,
+          hide_gitignored = false,
+          hide_by_name = {
+            ".DS_Store",
+            "thumbs.db"
+          },
+          never_show = {
+            ".DS_Store",
+            "thumbs.db"
+          },
+        },
+        follow_current_file = true,
+        hijack_netrw_behavior = "open_default",
+        use_libuv_file_watcher = true,
+      },
+      buffers = {
+        follow_current_file = true,
+        group_empty_dirs = true,
+        show_unloaded = true,
+      },
+      git_status = {
+        window = {
+          position = "float",
+        },
+      },
+    })
+  end,
+},
   -- Fuzzy finder
   {
     'nvim-telescope/telescope.nvim',
@@ -227,6 +288,20 @@ require("lazy").setup({
       show_help = "yes",
       debug = false,
       disable_extra_info = 'no',
+    },
+    keys = {
+      { "\\cc", ":CopilotChat ", desc = "CopilotChat - Ask about code" },
+      { "\\ce", "<cmd>CopilotChatExplain<cr>", desc = "CopilotChat - Explain code" },
+      { "\\cf", "<cmd>CopilotChatFix<cr>", desc = "CopilotChat - Fix code" },
+      { "\\ct", "<cmd>CopilotChatTests<cr>", desc = "CopilotChat - Generate tests" },
+      -- Visual mode mappings for selected code
+      { "\\ce", ":CopilotChatExplain<cr>", mode = "v", desc = "CopilotChat - Explain selected code" },
+      { "\\cf", ":CopilotChatFix<cr>", mode = "v", desc = "CopilotChat - Fix selected code" },
+      { "\\ct", ":CopilotChatTests<cr>", mode = "v", desc = "CopilotChat - Generate tests for selected code" },
+      { "\\co", ":CopilotChatOptimize<cr>", mode = "v", desc = "CopilotChat - Optimize selected code" },
+      { "\\cd", ":CopilotChatDocs<cr>", mode = "v", desc = "CopilotChat - Generate documentation for selected code" },
+      { "\\cc", ":CopilotChat ", mode = "v", desc = "CopilotChat - Ask about selected code" },
+      { "\\cr", ":CopilotChatReview<cr>", mode = "v", desc = "CopilotChat - Review selected code" },
     },
   },
 })
