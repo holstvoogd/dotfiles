@@ -1,4 +1,4 @@
 .DS_store
 vim/backups
 vim/.netrwhist
-nvim/*.lock
+nvim/lazy-lock.json

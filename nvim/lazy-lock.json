@@ -1,6 +1,7 @@
 {
   "CopilotChat.nvim": { "branch": "main", "commit": "cb73689b1aec60ed90e65c52581da135592a1cf1" },
   "bufdelete.nvim": { "branch": "master", "commit": "f6bcea78afb3060b198125256f897040538bcb81" },
+  "bufferline.nvim": { "branch": "main", "commit": "655133c3b4c3e5e05ec549b9f8cc2894ac6f51b3" },
   "copilot.vim": { "branch": "release", "commit": "87038123804796ca7af20d1b71c3428d858a9124" },
   "gitsigns.nvim": { "branch": "main", "commit": "9b36d497495436c135659902054ee637e0ba6021" },
   "is.vim": { "branch": "master", "commit": "d393cb346dcdf733fecd7bbfc45b70b8c05e9eb4" },

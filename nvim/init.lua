@@ -83,7 +83,7 @@ require("lazy").setup({
       vim.cmd('colorscheme solarized')
     end,
   },
-  
+
   -- Status line
   {
     'nvim-lualine/lualine.nvim',
@@ -97,7 +97,47 @@ require("lazy").setup({
       })
     end
   },
-  
+
+  -- Buffer line
+  {
+    'akinsho/bufferline.nvim',
+    requires = 'nvim-tree/nvim-web-devicons',
+    config = function()
+      require('bufferline').setup {
+        options = {
+          numbers = "none",
+          close_command = "bdelete! %d",
+          right_mouse_command = "bdelete! %d",
+          left_mouse_command = "buffer %d",
+          middle_mouse_command = nil,
+          indicator = {
+            icon = '▎',
+            style = 'icon',
+          },
+          buffer_close_icon = '',
+          modified_icon = '●',
+          close_icon = '',
+          left_trunc_marker = '',
+          right_trunc_marker = '',
+          max_name_length = 18,
+          max_prefix_length = 15,
+          tab_size = 18,
+          diagnostics = false,
+          offsets = {{filetype = "NeoTree", text = "File Explorer", text_align = "left"}},
+          show_buffer_icons = true,
+          show_buffer_close_icons = true,
+          show_close_icon = true,
+          show_tab_indicators = true,
+          persist_buffer_sort = true,
+          separator_style = "slant",
+          enforce_regular_tabs = false,
+          always_show_bufferline = true,
+          sort_by = 'id',
+        }
+      }
+    end
+  },
+
   -- Modern file explorer
   {
     'nvim-neo-tree/neo-tree.nvim',
@@ -178,8 +218,8 @@ require("lazy").setup({
         filesystem = {
           filtered_items = {
             visible = true,
-            hide_dotfiles = false,
-            hide_gitignored = false,
+            hide_dotfiles = true,
+            hide_gitignored = true,
             hide_by_name = {
               ".DS_Store",
               "thumbs.db"
@@ -219,7 +259,7 @@ require("lazy").setup({
         defaults = {
           file_ignore_patterns = { "node_modules", ".git/" },
           layout_strategy = 'horizontal',
-          layout_config = { 
+          layout_config = {
             horizontal = { width = 0.95, height = 0.95 }
           },
         },
@@ -247,6 +287,7 @@ require("lazy").setup({
         current_line_blame = true,
         current_line_blame_opts = {
           delay = 300,
+          virt_text_pos = "right_align"
         },
       })
     end,
@@ -290,24 +331,32 @@ require("lazy").setup({
       "nvim-telescope/telescope.nvim",
     },
     build = "make tiktoken",
+    keys = {
+      { "\\cc", ":CopilotChat ", desc = "CopilotChat - Ask about code", mode = { "n", "v" } },
+      { "\\cd", "<cmd>CopilotChatDocs<cr>", desc = "CopilotChat - Generate documentation for selected code", mode = "v" },
+      { "\\ce", "<cmd>CopilotChatExplain<cr>", desc = "CopilotChat - Explain code", mode = { "n", "v" } },
+      { "\\cf", "<cmd>CopilotChatFix<cr>", desc = "CopilotChat - Fix code", mode = { "n", "v" } },
+      { "\\cm", "<cmd>CopilotChatCommit<cr>", desc = "CopilotChat - Write commit message for the change", mode = { "v", "n" } },
+      { "\\co", "<cmd>CopilotChatOptimize<cr>", desc = "CopilotChat - Optimize selected code", mode = "v" },
+      { "\\cr", "<cmd>CopilotChatReview<cr>", desc = "CopilotChat - Review selected code", mode = "v" },
+      { "\\ct", "<cmd>CopilotChatTests<cr>", desc = "CopilotChat - Generate tests", mode = { "n", "v" } },
+    },
     opts = {
       show_help = "yes",
       debug = false,
       disable_extra_info = 'no',
-    },
-    keys = {
-      { "\\cc", ":CopilotChat ", desc = "CopilotChat - Ask about code" },
-      { "\\ce", "<cmd>CopilotChatExplain<cr>", desc = "CopilotChat - Explain code" },
-      { "\\cf", "<cmd>CopilotChatFix<cr>", desc = "CopilotChat - Fix code" },
-      { "\\ct", "<cmd>CopilotChatTests<cr>", desc = "CopilotChat - Generate tests" },
-      -- Visual mode mappings for selected code
-      { "\\ce", ":CopilotChatExplain<cr>", mode = "v", desc = "CopilotChat - Explain selected code" },
-      { "\\cf", ":CopilotChatFix<cr>", mode = "v", desc = "CopilotChat - Fix selected code" },
-      { "\\ct", ":CopilotChatTests<cr>", mode = "v", desc = "CopilotChat - Generate tests for selected code" },
-      { "\\co", ":CopilotChatOptimize<cr>", mode = "v", desc = "CopilotChat - Optimize selected code" },
-      { "\\cd", ":CopilotChatDocs<cr>", mode = "v", desc = "CopilotChat - Generate documentation for selected code" },
-      { "\\cc", ":CopilotChat ", mode = "v", desc = "CopilotChat - Ask about selected code" },
-      { "\\cr", ":CopilotChatReview<cr>", mode = "v", desc = "CopilotChat - Review selected code" },
+      window = {
+        layout = 'float',
+        relative = 'cursor',
+        width = 1,
+        height = 0.4,
+        row = 1
+      },
+      prompts = {
+        Commit = {
+          prompt = '> #git:staged\n\nWrite commit message for the change using the following format:\n<Issue ID> - <Short description of the change>\n<More detailed description, if necessary>\n<References to related issues or pull requests from the project>. Assume the current branch uses this format: <issue id>-<short-descriptive-name> to determin the issue ID, otherwise ommit it. Make sure the title has maximum 50 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit.',
+        },
+      },
     },
   },
 })
@@ -328,7 +377,7 @@ keymap('n', '<C-S-Left>', ':bprevious<CR>')
 keymap('n', '<C-w>', ':Bdelete<CR>')  -- Using bufdelete.nvim
 
 -- File navigation
-keymap('n', '\\d', ':NvimTreeToggle<CR>')
+keymap('n', '\\d', ':NeoTreeShowToggle<CR>')
 
 -- Telescope mappings
 keymap('n', '\\ff', ':Telescope find_files<CR>')
@@ -349,3 +398,21 @@ keymap('n', '<C-c>', ':noh<CR>')
 
 -- Sudo write
 vim.api.nvim_set_keymap('c', 'sudow', 'w !sudo tee % >/dev/null', { noremap = true, silent = true })
+
+-- Auto generate commit message
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "gitcommit",
+  callback = function()
+    local bufnr = vim.api.nvim_get_current_buf()
+    local filename = vim.api.nvim_buf_get_name(bufnr)
+    -- Only run for COMMIT_EDITMSG and not MERGE_MSG or other git files
+    if not filename:match("COMMIT_EDITMSG$") then
+      return
+    end
+    if vim.fn.line('$') == 1 and vim.fn.getline(1) == '' then
+      vim.defer_fn(function()
+        vim.cmd('CopilotChatCommit')
+      end, 0)
+    end
+  end
+})
