@@ -18,7 +18,8 @@ source $ZSH/oh-my-zsh.sh
 source ~/.secrets.env
 
 # Preferred editor
-export EDITOR='vim'
+export EDITOR='nvim'
+
 
 source $ZSH/lib/key-bindings.zsh
 
@@ -28,6 +29,10 @@ fi
 
 rgv() {
   vim $(rg -l $1 $2)
+}
+
+unquarantine() {
+  xattr -rd com.apple.quarantine "$@"
 }
 
 export PATH="/opt/homebrew/sbin:/opt/homebrew/bin:/usr/local/bin:/usr/local/sbin:~/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:$PATH"
