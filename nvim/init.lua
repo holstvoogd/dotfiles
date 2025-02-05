@@ -354,7 +354,7 @@ require("lazy").setup({
       },
       prompts = {
         Commit = {
-          prompt = '> #git:staged\n\nWrite commit message for the change using the following format:\n<Issue ID> - <Short description of the change>\n<More detailed description, if necessary>\n<References to related issues or pull requests from the project>. Assume the current branch uses this format: <issue id>-<short-descriptive-name> to determin the issue ID, otherwise ommit it. Make sure the title has maximum 50 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit.',
+          prompt = '> #git:staged\n\nWrite commit message for the change using the following format:\n<Issue ID if available from the git branch name> <Short description of the change>\n<More detailed description, if necessary>. Make sure the title has maximum 50 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit.',
         },
       },
     },
@@ -409,10 +409,21 @@ vim.api.nvim_create_autocmd("FileType", {
     if not filename:match("COMMIT_EDITMSG$") then
       return
     end
-    if vim.fn.line('$') == 1 and vim.fn.getline(1) == '' then
-      vim.defer_fn(function()
+    -- Check if the buffer only contains default git commit comments
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local is_empty = true
+    for _, line in ipairs(lines) do
+      if not line:match("^#") and line ~= "" then
+        is_empty = false
+        break
+      end
+    end
+    if is_empty then
+      vim.schedule(function()
+        -- Ensure the plugin is loaded
+        require('CopilotChat')
         vim.cmd('CopilotChatCommit')
-      end, 0)
+      end)
     end
   end
 })
