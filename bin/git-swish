@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REMOTE_BRANCH=$(git rev-parse --abbrev-ref origin/HEAD)
+REMOTE_BRANCH=$(git rev-parse --abbrev-ref origin/HEAD | sed 's|^origin/||')
 INCLUDE_UNTRACKED=0
 
 usage() {
@@ -23,7 +23,7 @@ done
 [ -z "$BRANCH_NAME" ] && usage
 
 # Validate branch name format
-if ! [[ $BRANCH_NAME =~ ^[0-9]+(-[a-zA-Z0-9]+)+$ ]]; then
+if ! [[ $BRANCH_NAME =~ ^[0-9]+(-[a-zA-Z0-9]+)+$ || $BRANCH_NAME == $REMOTE_BRANCH ]]; then
     echo "Error: Branch name must match pattern: <number>-<word>[-<word>]"
     exit 1
 fi
@@ -43,16 +43,13 @@ if [ -n "$(git status --porcelain)" ]; then
     fi
 fi
 
-# Update base branch
-git fetch origin
-git checkout $REMOTE_BRANCH
-git pull origin $REMOTE_BRANCH
-
-# Switch to or create target branch
+# Switch to & update or create target branch
 if git show-ref --quiet refs/heads/$BRANCH_NAME; then
     git checkout $BRANCH_NAME
+    git pull origin $BRANCH_NAME >/dev/null 2>&1 || true
 else
-    git checkout -b $BRANCH_NAME
+    git fetch origin/$REMOTE_BRANCH
+    git checkout origin/$REMOTE_BRANCH -b $BRANCH_NAME
 fi
 
 # Find and pop branch-specific stash if it exists

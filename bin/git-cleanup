@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REMOTE_BRANCH="origin/HEAD"
+REMOTE_BRANCH=$(git rev-parse --abbrev-ref origin/HEAD | sed 's|^origin/||')
 
 usage() {
     echo "usage: git cleanup [-h] [-b base-branch]"
@@ -20,7 +20,7 @@ done
 git fetch origin
 
 # Get list of merged branches
-MERGED_BRANCHES=$(git branch --merged origin/HEAD | grep -v "\*" | grep -v "$(git rev-parse --abbrev-ref origin/HEAD)" | tr -d ' ')
+MERGED_BRANCHES=$(git branch --merged origin/HEAD | grep -v "\*" | grep -v "$REMOTE_BRANCH" | tr -d ' ')
 
 if [ -z "$MERGED_BRANCHES" ]; then
     echo "No merged branches found"
