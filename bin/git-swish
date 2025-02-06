@@ -1,0 +1,62 @@
+#!/bin/bash
+
+REMOTE_BRANCH="staging"
+INCLUDE_UNTRACKED=0
+
+usage() {
+    echo "usage: git switch [-h] [-b base-branch] [-u] <branch-name>"
+    echo "  -b <branch>    base branch for new branches (default: staging)"
+    echo "  -u            include untracked files in stash"
+    exit 1
+}
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -h|--help) usage ;;
+        -b) REMOTE_BRANCH="$2"; shift ;;
+        -u) INCLUDE_UNTRACKED=1 ;;
+        *) BRANCH_NAME="$1" ;;
+    esac
+    shift
+done
+
+[ -z "$BRANCH_NAME" ] && usage
+
+# Validate branch name format
+if ! [[ $BRANCH_NAME =~ ^[0-9]+(-[a-zA-Z0-9]+)+$ ]]; then
+    echo "Error: Branch name must match pattern: <number>-<word>[-<word>]"
+    exit 1
+fi
+
+# Get current branch
+CURRENT_BRANCH=$(git branch --show-current)
+
+# Stash current work with branch identifier if there are changes
+if [ -n "$(git status --porcelain)" ]; then
+    # Clean up any existing stashes for current branch
+    git stash list | grep "branch_${CURRENT_BRANCH}" | cut -d: -f1 | xargs -I{} git stash drop {}
+    
+    if [ $INCLUDE_UNTRACKED -eq 1 ]; then
+        git stash push -u -m "branch_${CURRENT_BRANCH}"
+    else
+        git stash push -m "branch_${CURRENT_BRANCH}"
+    fi
+fi
+
+# Update base branch
+git fetch origin
+git checkout $REMOTE_BRANCH
+git pull origin $REMOTE_BRANCH
+
+# Switch to or create target branch
+if git show-ref --quiet refs/heads/$BRANCH_NAME; then
+    git checkout $BRANCH_NAME
+else
+    git checkout -b $BRANCH_NAME
+fi
+
+# Find and pop branch-specific stash if it exists
+STASH_INDEX=$(git stash list | grep "branch_${BRANCH_NAME}" | cut -d: -f1)
+if [ -n "$STASH_INDEX" ]; then
+    git stash pop "$STASH_INDEX"
+fi

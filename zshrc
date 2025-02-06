@@ -35,6 +35,8 @@ unquarantine() {
   xattr -rd com.apple.quarantine "$@"
 }
 
-export PATH="/opt/homebrew/sbin:/opt/homebrew/bin:/usr/local/bin:/usr/local/sbin:~/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:$PATH"
+export PATH="$HOME/bin:/opt/homebrew/opt/postgresql@17/bin:/opt/homebrew/sbin:/opt/homebrew/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:$PATH"
+
+eval "$(rbenv init -)"
 
 source ~/.zshrc.local
