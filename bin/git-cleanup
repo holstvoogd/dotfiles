@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REMOTE_BRANCH="staging"
+REMOTE_BRANCH="origin/HEAD"
 
 usage() {
     echo "usage: git cleanup [-h] [-b base-branch]"
@@ -29,10 +29,10 @@ fi
 
 for branch in $MERGED_BRANCHES; do
     echo "Processing $branch..."
-    
+
     # Clean up stashes for this branch
     git stash list | grep "branch_${branch}" | cut -d: -f1 | xargs -I{} git stash drop {}
-    
+
     # Delete the branch
     git branch -d "$branch"
 done

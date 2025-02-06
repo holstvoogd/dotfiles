@@ -1,11 +1,11 @@
 #!/bin/bash
 
-REMOTE_BRANCH="staging"
+REMOTE_BRANCH="origin/HEAD"
 INCLUDE_UNTRACKED=0
 
 usage() {
     echo "usage: git switch [-h] [-b base-branch] [-u] <branch-name>"
-    echo "  -b <branch>    base branch for new branches (default: staging)"
+    echo "  -b <branch>   base branch for new branches (default: $REMOTE_BRANCH)"
     echo "  -u            include untracked files in stash"
     exit 1
 }
