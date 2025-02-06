@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REMOTE_BRANCH="origin/HEAD"
+REMOTE_BRANCH=$(git rev-parse --abbrev-ref origin/HEAD)
 INCLUDE_UNTRACKED=0
 
 usage() {
@@ -35,7 +35,7 @@ CURRENT_BRANCH=$(git branch --show-current)
 if [ -n "$(git status --porcelain)" ]; then
     # Clean up any existing stashes for current branch
     git stash list | grep "branch_${CURRENT_BRANCH}" | cut -d: -f1 | xargs -I{} git stash drop {}
-    
+
     if [ $INCLUDE_UNTRACKED -eq 1 ]; then
         git stash push -u -m "branch_${CURRENT_BRANCH}"
     else
