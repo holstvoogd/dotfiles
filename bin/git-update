@@ -1,39 +1,65 @@
 #!/bin/bash
 
-usage() {
-    echo "usage: git sync [-h] [-u]"
-    echo "  -u    include untracked files in stash"
-    exit 1
-}
+set -euo pipefail
+IFS=$'\n\t'
 
 INCLUDE_UNTRACKED=0
 
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        -h|--help) usage ;;
-        -u) INCLUDE_UNTRACKED=1 ;;
-        *) echo "Unknown parameter: $1"; usage ;;
-    esac
-    shift
-done
+usage() {
+    echo "Usage: git sync [-h] [-u]"
+    echo "  -u    Include untracked files in stash"
+    exit 1
+}
 
-CURRENT_BRANCH=$(git branch --show-current)
-
-# Stash changes if any
-if [ -n "$(git status --porcelain)" ]; then
-    if [ $INCLUDE_UNTRACKED -eq 1 ]; then
-        git stash push -u -m "sync_${CURRENT_BRANCH}"
-    else
-        git stash push -m "sync_${CURRENT_BRANCH}"
+check_git_installed() {
+    if ! command -v git &> /dev/null; then
+        echo "Error: git is not installed."
+        exit 1
     fi
-fi
+}
 
-# Update and rebase
-git fetch origin
-git rebase origin/HEAD
+parse_arguments() {
+    while [[ "$#" -gt 0 ]]; do
+        case $1 in
+            -h|--help) usage ;;
+            -u) INCLUDE_UNTRACKED=1 ;;
+            *) echo "Unknown parameter: $1"; usage ;;
+        esac
+        shift
+    done
+}
 
-# Restore changes
-STASH_INDEX=$(git stash list | grep "sync_${CURRENT_BRANCH}" | cut -d: -f1)
-if [ -n "$STASH_INDEX" ]; then
-    git stash pop "$STASH_INDEX"
-fi
+stash_changes() {
+    if [ -n "$(git status --porcelain)" ]; then
+        if [ $INCLUDE_UNTRACKED -eq 1 ]; then
+            git stash push -u -m "sync_${CURRENT_BRANCH}"
+        else
+            git stash push -m "sync_${CURRENT_BRANCH}"
+        fi
+    fi
+}
+
+fetch_and_rebase() {
+    git fetch origin
+    git rebase origin/HEAD
+}
+
+pop_stash() {
+    STASH_INDEX=$(git stash list | grep "sync_${CURRENT_BRANCH}" | cut -d: -f1)
+    if [ -n "$STASH_INDEX" ]; then
+        git stash pop "$STASH_INDEX"
+    fi
+}
+
+main() {
+    check_git_installed
+    parse_arguments "$@"
+
+    CURRENT_BRANCH=$(git branch --show-current)
+
+    stash_changes
+    fetch_and_rebase
+    pop_stash
+}
+
+main "$@"

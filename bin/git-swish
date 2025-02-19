@@ -1,14 +1,15 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
+IFS=$'\n\t'
 
 REMOTE_BRANCH=$(git rev-parse --abbrev-ref origin/HEAD | sed 's|^origin/||')
 INCLUDE_UNTRACKED=0
 
 usage() {
-    echo "usage: git switch [-h] [-b base-branch] [-u] <branch-name>"
-    echo "  -b <branch>   base branch for new branches (default: $REMOTE_BRANCH)"
-    echo "  -u            include untracked files in stash"
+    echo "Usage: git switch [-h] [-b base-branch] [-u] <branch-name>"
+    echo "  -b <branch>   Base branch for new branches (default: $REMOTE_BRANCH)"
+    echo "  -u            Include untracked files in stash"
     exit 1
 }
 
@@ -30,7 +31,9 @@ parse_arguments() {
         shift
     done
 
-    [ -z "$BRANCH_NAME" ] && usage
+    if [ -z "${BRANCH_NAME:-}" ]; then
+        usage
+    fi
 }
 
 validate_branch_name() {

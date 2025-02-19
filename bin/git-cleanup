@@ -1,40 +1,50 @@
 #!/bin/bash
 
-REMOTE_BRANCH=$(git rev-parse --abbrev-ref origin/HEAD | sed 's|^origin/||')
+set -euo pipefail
+IFS=$'\n\t'
 
+# Function to display usage information
 usage() {
-    echo "usage: git cleanup [-h] [-b base-branch]"
-    echo "  -b <branch>    base branch for checking merges (default: staging)"
+    echo "Usage: $0 [-f] [-h]"
+    echo "  -f    Force delete untracked files and directories"
+    echo "  -h    Display this help message"
     exit 1
 }
 
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        -h|--help) usage ;;
-        -b) REMOTE_BRANCH="$2"; shift ;;
+# Parse command-line options
+FORCE_DELETE=false
+while getopts ":fh" opt; do
+    case ${opt} in
+        f )
+            FORCE_DELETE=true
+            ;;
+        h )
+            usage
+            ;;
+        \? )
+            echo "Invalid option: -$OPTARG" >&2
+            usage
+            ;;
     esac
-    shift
 done
 
-# Update remote information
-git fetch origin
-
-# Get list of merged branches
-MERGED_BRANCHES=$(git branch --merged origin/HEAD | grep -v "\*" | grep -v "$REMOTE_BRANCH" | tr -d ' ')
-
-if [ -z "$MERGED_BRANCHES" ]; then
-    echo "No merged branches found"
-    exit 0
+# Ensure we are in a git repository
+if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: Not inside a git repository" >&2
+    exit 1
 fi
 
-for branch in $MERGED_BRANCHES; do
-    echo "Processing $branch..."
+# Clean up the repository
+echo "Cleaning up the repository..."
+git fetch --prune
+git remote prune origin
 
-    # Clean up stashes for this branch
-    git stash list | grep "branch_${branch}" | cut -d: -f1 | xargs -I{} git stash drop {}
+if [ "$FORCE_DELETE" = true ]; then
+    git clean -fdx
+else
+    git clean -fd
+fi
 
-    # Delete the branch
-    git branch -d "$branch"
-done
+git gc --aggressive --prune=now
 
-echo "Cleanup complete"
+echo "Repository cleanup complete."
