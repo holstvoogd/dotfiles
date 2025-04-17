@@ -1,0 +1,138 @@
+#!/bin/bash
+
+set -euo pipefail
+IFS=$'\n\t'
+
+usage() {
+  echo "Usage: git fix [options] [file1 file2 ...]"
+  echo "Options:"
+  echo "  -h, --help   Display this help message"
+  echo
+  echo "Examples:"
+  echo "  git fix file.txt              # Fix a single file"
+  echo "  git fix file1.txt file2.txt   # Fix multiple files"
+  echo "  git fix .                     # Fix all modified files in current directory"
+  echo
+  echo "Creates fixup commits for the specified files."
+  exit 0
+}
+
+check_git_installed() {
+  if ! command -v git &> /dev/null; then
+    echo "Error: git is not installed."
+    exit 1
+  fi
+}
+
+parse_arguments() {
+  FILES=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h|--help)
+        usage
+        ;;
+      .)
+        # Get all modified files in the repo
+        while IFS= read -r line; do
+          # Get absolute path by using git's root directory and the file
+          repo_root=$(git rev-parse --show-toplevel)
+          relative_path=$(echo "$line" | sed 's/^...//')
+          FILES+=("$repo_root/$relative_path")
+        done < <(git status --porcelain | grep -v "^?")
+        shift
+        ;;
+      *)
+        # Get absolute path for the file
+        if [[ -f "$1" ]]; then
+          # Get absolute path without using realpath
+          if [[ "$1" = /* ]]; then
+            # Already absolute
+            FILES+=("$1")
+          else
+            # Convert to absolute
+            FILES+=("$(pwd)/$1")
+          fi
+        else
+          echo "Warning: File '$1' not found."
+        fi
+        shift
+        ;;
+    esac
+  done
+
+  if [[ ${#FILES[@]} -eq 0 ]]; then
+    usage
+  fi
+}
+
+find_last_commit_for_file() {
+  local file=$1
+  git log -1 --pretty=format:%H -- "$file"
+}
+
+create_fixup_commit() {
+  local commit=$1
+  local file=$2
+  git add "$file"
+  git commit --fixup="$commit"
+}
+
+process_file() {
+  local file=$1
+  
+  if [[ ! -f "$file" ]]; then
+    echo "Error: File '$file' does not exist."
+    return 1
+  fi
+
+  # Get the file path relative to the repository root for git operations
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel)
+  local rel_file="${file#$repo_root/}"
+  
+  # For files outside the repo root (should not happen), use the absolute path
+  if [[ "$rel_file" == "$file" && "$file" == /* ]]; then
+    # Create a relative path manually without using realpath
+    local common_prefix
+    common_prefix="$repo_root"
+    rel_file="${file#$common_prefix/}"
+    
+    # If still the same, it's not under the repo root, use the original path
+    if [[ "$rel_file" == "$file" ]]; then
+      echo "Warning: File '$file' appears to be outside the repository."
+    fi
+  fi
+
+  # Change to the repo root for consistent git operations
+  pushd "$repo_root" >/dev/null || exit 1
+  
+  local last_commit
+  last_commit=$(find_last_commit_for_file "$rel_file")
+
+  if [[ -z "$last_commit" ]]; then
+    echo "Error: No commits found for file '$rel_file'."
+    popd >/dev/null || exit 1
+    return 1
+  fi
+
+  create_fixup_commit "$last_commit" "$rel_file"
+  echo "Fixup commit created for file '$rel_file' on commit '$last_commit'."
+  
+  popd >/dev/null || exit 1
+  return 0
+}
+
+main() {
+  check_git_installed
+  parse_arguments "$@"
+
+  for file in "${FILES[@]}"; do
+    echo "Processing: $file"
+    if ! process_file "$file"; then
+      echo "Skipping file: $file"
+    fi
+  done
+}
+
+main "$@"

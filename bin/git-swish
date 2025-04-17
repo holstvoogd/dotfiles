@@ -58,7 +58,6 @@ stash_changes() {
 switch_branch() {
     if git show-ref --quiet refs/heads/$BRANCH_NAME; then
         git checkout $BRANCH_NAME
-        git pull origin $BRANCH_NAME >/dev/null 2>&1 || true
     else
         git fetch origin $REMOTE_BRANCH
         git checkout origin/$REMOTE_BRANCH -b $BRANCH_NAME

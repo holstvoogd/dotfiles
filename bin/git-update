@@ -4,9 +4,10 @@ set -euo pipefail
 IFS=$'\n\t'
 
 INCLUDE_UNTRACKED=0
+REBASE_BASE="origin/HEAD"
 
 usage() {
-    echo "Usage: git sync [-h] [-u]"
+    echo "Usage: git sync [-h] [-u] <branch-name>"
     echo "  -u    Include untracked files in stash"
     exit 1
 }
@@ -23,7 +24,7 @@ parse_arguments() {
         case $1 in
             -h|--help) usage ;;
             -u) INCLUDE_UNTRACKED=1 ;;
-            *) echo "Unknown parameter: $1"; usage ;;
+            *) REBASE_BASE=$1 ;;
         esac
         shift
     done
@@ -41,7 +42,7 @@ stash_changes() {
 
 fetch_and_rebase() {
     git fetch origin
-    git rebase origin/HEAD
+    git rebase "$REBASE_BASE"
 }
 
 pop_stash() {
