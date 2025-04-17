@@ -4,14 +4,14 @@ set -euo pipefail
 IFS=$'\n\t'
 
 usage() {
-  echo "Usage: git fix [options] [file1 file2 ...]"
+  echo "Usage: git fixup [options] [file1 file2 ...]"
   echo "Options:"
   echo "  -h, --help   Display this help message"
   echo
   echo "Examples:"
-  echo "  git fix file.txt              # Fix a single file"
-  echo "  git fix file1.txt file2.txt   # Fix multiple files"
-  echo "  git fix .                     # Fix all modified files in current directory"
+  echo "  git fixup file.txt              # Fix a single file"
+  echo "  git fixup file1.txt file2.txt   # Fix multiple files"
+  echo "  git fixup .                     # Fix all modified files in current directory"
   echo
   echo "Creates fixup commits for the specified files."
   exit 0
