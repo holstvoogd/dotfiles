@@ -1,0 +1,74 @@
+// settings.json
+{
+  // Theme
+  "workbench.colorTheme": "Solarized Light",
+  
+  // Clean UI
+  "workbench.activityBar.location": "hidden",
+  "editor.minimap.enabled": false,
+  "breadcrumbs.enabled": false,
+  
+  // Editor
+  "editor.tabSize": 2,
+  "editor.renderWhitespace": "trailing",
+  "editor.rulers": [80, 120],
+  "files.trimTrailingWhitespace": true,
+  "editor.formatOnSave": false, // Control per language below
+  
+  // Language-specific formatting
+  "[ruby]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "Shopify.ruby-lsp"
+  },
+  "[javascript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  
+  // Rails file associations
+  "files.associations": {
+    "*.html.erb": "erb",
+    "*.js.erb": "javascript",
+    "*.slim": "slim",
+    "*.haml": "haml"
+  },
+  
+  // Ruby/Rails
+  "rubyLsp.enabledFeatures": {
+    "codeActions": true,
+    "diagnostics": true,
+    "documentHighlights": true,
+    "documentLink": true,
+    "documentSymbols": true,
+    "foldingRanges": true,
+    "formatting": true,
+    "hover": true,
+    "inlayHint": true,
+    "onTypeFormatting": true,
+    "selectionRanges": true,
+    "semanticHighlighting": true,
+    "completion": true,
+    "codeLens": true
+  },
+  
+  // GitHub Copilot
+  "github.copilot.enable": {
+    "*": true
+  },
+  
+  // Git
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "gitlens.hovers.currentLine.over": "line",
+  
+  // Performance
+  "telemetry.telemetryLevel": "off",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/tmp": true,
+    "**/log": true,
+    "**/.git": true,
+    "**/storage": true,
+    "**/coverage": true
+  }
+}

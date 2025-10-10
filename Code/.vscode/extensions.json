@@ -1,0 +1,29 @@
+{
+  "recommendations": [
+    "github.copilot",
+    "github.copilot-chat",
+    "github.vscode-pull-request-github",
+    
+    "shopify.ruby-lsp",
+    "hridoy.rails-snippets",
+    "vense.rails-snippets",
+    
+    "sianglim.slim",
+    "karyfoundation.haml",
+    "craigmaslowski.erb",
+    
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "patbenatar.coffeescript-preview",
+    
+    "jakebecker.elixir-ls",
+    "cweijan.vscode-database-client2",
+    
+    "eamodio.gitlens",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    "sleistner.vscode-fileutils", 
+    
+    "ryanolsonx.solarized"
+  ]
+}

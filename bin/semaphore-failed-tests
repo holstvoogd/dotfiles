@@ -1,0 +1,663 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# SemaphoreCI Failed Test Extractor
+# Retrieves logs from SemaphoreCI workflows and extracts failed test locations
+
+readonly SCRIPT_NAME="$(basename "${0}")"
+readonly CONFIG_FILE="${HOME}/.semaphore-failed-tests.conf"
+
+# Default values
+ORG_URL=""
+API_TOKEN=""
+OUTPUT_FORMAT="commands"
+VERBOSE=false
+PIPELINE_ID=""
+VALIDATE_FILE=""
+AUTO_MODE=false
+BRANCH_NAME=""
+
+usage() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [OPTIONS] [PIPELINE_ID]
+
+Extract failed test locations from SemaphoreCI pipeline logs.
+
+Arguments:
+  PIPELINE_ID    SemaphoreCI pipeline ID to analyze (optional if using --auto)
+
+Options:
+  -o, --org URL       Organization URL (e.g., https://myorg.semaphoreci.com)
+  -t, --token TOKEN   API token (or use SEMAPHORE_API_TOKEN env var)
+  -f, --format FORMAT Output format: commands, json, summary, files (default: commands)
+  -v, --verbose       Enable verbose output
+  --validate FILE     Compare output with reference file and show differences
+  --auto              Auto-detect pipeline from current git branch and PR
+  --branch BRANCH     Use specified branch instead of current branch (implies --auto)
+  -h, --help          Show this help message
+
+Output Formats:
+  commands    Shell commands to run failed tests locally
+  json        Structured JSON with file paths, line numbers, test names
+  summary     Human-readable summary of failures
+  files       Plain list of file:line locations
+
+Configuration:
+  Settings can be stored in ${CONFIG_FILE}
+  
+Examples:
+  ${SCRIPT_NAME} -o https://myorg.semaphoreci.com -t abc123 pipeline-id-456
+  ${SCRIPT_NAME} --format json pipeline-id-456
+  ${SCRIPT_NAME} --auto --format files
+  ${SCRIPT_NAME} --branch pull-request-27403 --format files
+  SEMAPHORE_API_TOKEN=abc123 ${SCRIPT_NAME} pipeline-id-456
+EOF
+}
+
+log_info() {
+  if [[ "${OUTPUT_FORMAT}" != "files" ]]; then
+    echo "INFO: $*" >&2
+  fi
+}
+
+log_error() {
+  echo "ERROR: $*" >&2
+}
+
+log_debug() {
+  if [[ "${VERBOSE}" == "true" ]]; then
+    echo "DEBUG: $*" >&2
+  fi
+}
+
+load_config() {
+  if [[ -f "${CONFIG_FILE}" ]]; then
+    log_debug "Loading configuration from ${CONFIG_FILE}"
+    # shellcheck source=/dev/null
+    source "${CONFIG_FILE}"
+  fi
+}
+
+parse_args() {
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -o|--org)
+        ORG_URL="$2"
+        shift 2
+        ;;
+      -t|--token)
+        API_TOKEN="$2"
+        shift 2
+        ;;
+      -f|--format)
+        OUTPUT_FORMAT="$2"
+        shift 2
+        ;;
+      -v|--verbose)
+        VERBOSE=true
+        shift
+        ;;
+      --validate)
+        VALIDATE_FILE="$2"
+        shift 2
+        ;;
+      --auto)
+        AUTO_MODE=true
+        shift
+        ;;
+      --branch)
+        BRANCH_NAME="$2"
+        AUTO_MODE=true
+        shift 2
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      -*)
+        log_error "Unknown option: $1"
+        usage
+        exit 1
+        ;;
+      *)
+        if [[ -z "${PIPELINE_ID}" ]]; then
+          PIPELINE_ID="$1"
+        else
+          log_error "Multiple pipeline IDs provided"
+          usage
+          exit 1
+        fi
+        shift
+        ;;
+    esac
+  done
+}
+
+validate_args() {
+  if [[ -z "${PIPELINE_ID}" ]] && [[ "${AUTO_MODE}" != "true" ]]; then
+    log_error "Pipeline ID is required (or use --auto to detect from current branch)"
+    usage
+    exit 1
+  fi
+
+  # Use environment variable if token not provided
+  if [[ -z "${API_TOKEN}" ]] && [[ -n "${SEMAPHORE_API_TOKEN:-}" ]]; then
+    API_TOKEN="${SEMAPHORE_API_TOKEN}"
+  fi
+
+  if [[ -z "${API_TOKEN}" ]]; then
+    log_error "API token is required (use -t option or SEMAPHORE_API_TOKEN env var)"
+    exit 1
+  fi
+
+  if [[ -z "${ORG_URL}" ]]; then
+    log_error "Organization URL is required (use -o option or config file)"
+    exit 1
+  fi
+
+  # Validate output format
+  case "${OUTPUT_FORMAT}" in
+    commands|json|summary|files)
+      ;;
+    *)
+      log_error "Invalid output format: ${OUTPUT_FORMAT}"
+      log_error "Valid formats: commands, json, summary, files"
+      exit 1
+      ;;
+  esac
+
+  # Ensure ORG_URL ends with proper format
+  if [[ ! "${ORG_URL}" =~ ^https?:// ]]; then
+    ORG_URL="https://${ORG_URL}"
+  fi
+  if [[ ! "${ORG_URL}" =~ \.semaphoreci\.com$ ]]; then
+    ORG_URL="${ORG_URL}.semaphoreci.com"
+  fi
+}
+
+api_call() {
+  local endpoint="$1"
+  local url="${ORG_URL}/api/v1alpha/${endpoint}"
+  
+  log_debug "Making API call to: ${url}"
+  
+  curl -s -H "Authorization: Token ${API_TOKEN}" \
+       -H "Content-Type: application/json" \
+       "${url}" || {
+    log_error "Failed to call API endpoint: ${endpoint}"
+    return 1
+  }
+}
+
+get_pipeline_info() {
+  local pipeline_id="$1"
+  log_info "Fetching pipeline information for ${pipeline_id}"
+  
+  api_call "pipelines/${pipeline_id}?detailed=true" || {
+    log_error "Failed to fetch pipeline information"
+    return 1
+  }
+}
+
+get_job_logs() {
+  local job_id="$1"
+  log_debug "Fetching logs for job ${job_id}"
+  
+  api_call "logs/${job_id}" || {
+    log_error "Failed to fetch logs for job ${job_id}"
+    return 1
+  }
+}
+
+extract_failed_jobs() {
+  local pipeline_json="$1"
+  
+  # Extract job IDs from failed jobs
+  echo "${pipeline_json}" | jq -r '
+    .blocks[]?.jobs[]? | 
+    select(.result == "FAILED") | 
+    .job_id
+  ' 2>/dev/null || {
+    log_error "Failed to parse pipeline JSON"
+    return 1
+  }
+}
+
+parse_test_failures() {
+  local logs_json="$1"
+  local failures=()
+  
+  # Extract cmd_output events and look for test failure patterns
+  local outputs
+  outputs=$(echo "${logs_json}" | jq -r '.events[] | select(.event == "cmd_output") | .output' 2>/dev/null)
+  
+  if [[ -z "${outputs}" ]]; then
+    return 0
+  fi
+  
+  # Parse the output looking for test failures and errors
+  local in_failure=false
+  local failure_found=false
+  
+  while IFS= read -r line; do
+    if [[ -n "${line}" ]]; then
+      # Check if we're entering a failure section (regular FAIL format)
+      if [[ "${line}" =~ FAIL.*\([0-9.]+s\) ]]; then
+        in_failure=true
+        failure_found=false
+        continue
+      fi
+      
+      # Check for ERROR format too
+      if [[ "${line}" =~ ERROR.*\([0-9.]+s\) ]]; then
+        in_failure=true
+        failure_found=false
+        continue
+      fi
+      
+      # Check for grouped errors format: ./test/path/to/test.rb:123
+      if [[ "${line}" =~ ^[[:space:]]*\./((test/[^:]+\.rb):([0-9]+)) ]]; then
+        failures+=("rails:${BASH_REMATCH[2]}:${BASH_REMATCH[3]}")
+        continue
+      fi
+      
+      # Check for direct test file references: test/path/to/test.rb:123:in
+      # But exclude test_helper.rb which is just infrastructure
+      if [[ "${line}" =~ ^[[:space:]]*((test/[^:]+\.rb):([0-9]+)):[[:space:]]*in ]] && [[ "${BASH_REMATCH[2]}" != "test/test_helper.rb" ]]; then
+        failures+=("rails:${BASH_REMATCH[2]}:${BASH_REMATCH[3]}")
+        continue
+      fi
+      
+      # Check for bare test file references: test/path/to/test.rb:123 (not in stack trace)
+      # But exclude test_helper.rb and system_test.rb which are infrastructure
+      if [[ "${line}" =~ ^[[:space:]]*((test/[^:]+\.rb):([0-9]+))[[:space:]]*$ ]] && [[ "${BASH_REMATCH[2]}" != "test/test_helper.rb" ]] && [[ "${BASH_REMATCH[2]}" != "test/system_test.rb" ]]; then
+        failures+=("rails:${BASH_REMATCH[2]}:${BASH_REMATCH[3]}")
+        continue
+      fi
+      
+      # Check for test method failure format: test_NNNN_description FAIL
+      if [[ "${line}" =~ ^[[:space:]]*test_[0-9]+_.*FAIL.*\([0-9.]+s\) ]]; then
+        # This indicates a test failure, but we need to find the file location
+        # Look ahead for the test file reference in subsequent lines
+        in_failure=true
+        failure_found=false
+        continue
+      fi
+      
+      # If we're in a failure section, look for the first test file reference
+      if [[ "${in_failure}" == "true" && "${failure_found}" == "false" ]]; then
+        # Look for test file pattern - first one after FAIL is the actual test location
+        # But exclude test_helper.rb which is infrastructure
+        if [[ "${line}" =~ ^[[:space:]]*(test/[^:]+\.rb):([0-9]+): ]] && [[ "${BASH_REMATCH[1]}" != "test/test_helper.rb" ]]; then
+          failures+=("rails:${BASH_REMATCH[1]}:${BASH_REMATCH[2]}")
+          failure_found=true
+          in_failure=false
+        fi
+      fi
+      
+      # Reset if we hit a new failure section or end of failure
+      if [[ "${line}" =~ ^[[:space:]]*$ ]] && [[ "${in_failure}" == "true" ]]; then
+        in_failure=false
+      fi
+    fi
+  done <<< "${outputs}"
+  
+  # Output unique failures
+  if [[ ${#failures[@]} -gt 0 ]]; then
+    printf '%s\n' "${failures[@]}" | sort -u
+  fi
+}
+
+format_output() {
+  local format="$1"
+  local failures="$2"
+  
+  if [[ -z "${failures}" ]]; then
+    log_info "No test failures found"
+    return 0
+  fi
+  
+  case "${format}" in
+    commands)
+      format_commands "${failures}"
+      ;;
+    json)
+      format_json "${failures}"
+      ;;
+    summary)
+      format_summary "${failures}"
+      ;;
+    files)
+      format_files "${failures}"
+      ;;
+  esac
+}
+
+format_commands() {
+  local failures="$1"
+  
+  echo "# Commands to run failed tests locally"
+  echo ""
+  
+  while IFS= read -r failure; do
+    if [[ -n "${failure}" ]]; then
+      local type="${failure%%:*}"
+      local file="${failure#*:}"
+      local line="${file##*:}"
+      file="${file%:*}"
+      
+      case "${type}" in
+        rspec)
+          echo "rspec ${file}:${line}"
+          ;;
+        jest)
+          echo "npm test -- ${file}"
+          ;;
+        pytest)
+          echo "pytest ${file}::${line}"
+          ;;
+        rails)
+          echo "rails test ${file}:${line}"
+          ;;
+      esac
+    fi
+  done <<< "${failures}"
+}
+
+format_json() {
+  local failures="$1"
+  
+  echo "{"
+  echo "  \"failures\": ["
+  
+  local first=true
+  while IFS= read -r failure; do
+    if [[ -n "${failure}" ]]; then
+      local type="${failure%%:*}"
+      local file="${failure#*:}"
+      local line="${file##*:}"
+      file="${file%:*}"
+      
+      if [[ "${first}" != "true" ]]; then
+        echo ","
+      fi
+      first=false
+      
+      echo "    {"
+      echo "      \"type\": \"${type}\","
+      echo "      \"file\": \"${file}\","
+      echo "      \"line\": ${line}"
+      echo -n "    }"
+    fi
+  done <<< "${failures}"
+  
+  echo ""
+  echo "  ]"
+  echo "}"
+}
+
+format_summary() {
+  local failures="$1"
+  local count=0
+  
+  echo "Failed Test Summary:"
+  echo "==================="
+  
+  while IFS= read -r failure; do
+    if [[ -n "${failure}" ]]; then
+      local type="${failure%%:*}"
+      local file="${failure#*:}"
+      local line="${file##*:}"
+      file="${file%:*}"
+      
+      echo "  ${type}: ${file}:${line}"
+      ((count++))
+    fi
+  done <<< "${failures}"
+  
+  echo ""
+  echo "Total failures: ${count}"
+}
+
+format_files() {
+  local failures="$1"
+  
+  while IFS= read -r failure; do
+    if [[ -n "${failure}" ]]; then
+      local file="${failure#*:}"
+      local line="${file##*:}"
+      file="${file%:*}"
+      
+      echo "${file}:${line}"
+    fi
+  done <<< "${failures}"
+}
+
+validate_output() {
+  local failures="$1"
+  local reference_file="$2"
+  
+  if [[ ! -f "${reference_file}" ]]; then
+    log_error "Reference file not found: ${reference_file}"
+    exit 1
+  fi
+  
+  # Convert failures to files format
+  local found_tests="/tmp/found_tests.txt"
+  format_files "${failures}" > "${found_tests}"
+  
+  # Compare with reference file
+  local total_expected=$(wc -l < "${reference_file}")
+  local total_found=$(wc -l < "${found_tests}")
+  
+  echo "Validation Results:"
+  echo "=================="
+  echo "Expected: ${total_expected} tests"
+  echo "Found:    ${total_found} tests"
+  echo "Match:    $((total_found * 100 / total_expected))%"
+  echo ""
+  
+  # Show missing tests
+  local missing_tests="/tmp/missing_tests.txt"
+  comm -23 <(sort "${reference_file}") <(sort "${found_tests}") > "${missing_tests}"
+  local missing_count=$(wc -l < "${missing_tests}")
+  
+  if [[ ${missing_count} -gt 0 ]]; then
+    echo "Missing tests (${missing_count}):"
+    cat "${missing_tests}"
+    echo ""
+  fi
+  
+  # Show extra tests
+  local extra_tests="/tmp/extra_tests.txt"
+  comm -13 <(sort "${reference_file}") <(sort "${found_tests}") > "${extra_tests}"
+  local extra_count=$(wc -l < "${extra_tests}")
+  
+  if [[ ${extra_count} -gt 0 ]]; then
+    echo "Extra tests found (${extra_count}):"
+    cat "${extra_tests}"
+    echo ""
+  fi
+  
+  # Clean up
+  rm -f "${found_tests}" "${missing_tests}" "${extra_tests}"
+}
+
+get_current_branch() {
+  # Use specified branch if provided, otherwise get current branch
+  if [[ -n "${BRANCH_NAME}" ]]; then
+    echo "${BRANCH_NAME}"
+  else
+    git branch --show-current 2>/dev/null || {
+      log_error "Failed to get current git branch"
+      return 1
+    }
+  fi
+}
+
+get_github_repo_info() {
+  local remote_url
+  remote_url=$(git remote get-url origin 2>/dev/null) || {
+    log_error "Failed to get git remote origin URL"
+    return 1
+  }
+  
+  # Extract owner/repo from URL (works for both SSH and HTTPS)
+  if [[ "${remote_url}" =~ github\.com[:/]([^/]+)/([^/]+)(\.git)?$ ]]; then
+    echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]%.git}"
+  else
+    log_error "Could not parse GitHub repository from remote URL: ${remote_url}"
+    return 1
+  fi
+}
+
+find_pr_for_branch() {
+  local branch="$1"
+  local repo="$2"
+  
+  log_debug "Looking for PR for branch '${branch}' in repo '${repo}'"
+  
+  # Use GitHub CLI to find PR for branch
+  local pr_number
+  pr_number=$(gh pr list --repo "${repo}" --head "${branch}" --json number --jq '.[0].number' 2>/dev/null) || {
+    log_error "Failed to find PR for branch '${branch}'. Make sure 'gh' CLI is installed and authenticated."
+    return 1
+  }
+  
+  if [[ -z "${pr_number}" ]] || [[ "${pr_number}" == "null" ]]; then
+    log_error "No open PR found for branch '${branch}' in repository '${repo}'"
+    log_error "Make sure you're running this command from the correct git repository"
+    log_error "and that the branch has an open PR on GitHub."
+    return 1
+  fi
+  
+  echo "${pr_number}"
+}
+
+get_pr_commit_sha() {
+  local repo="$1"
+  local pr_number="$2"
+  
+  log_debug "Getting latest commit SHA for PR #${pr_number}"
+  
+  # Get the latest commit SHA from the PR
+  local commit_sha
+  commit_sha=$(gh pr view "${pr_number}" --repo "${repo}" --json headRefOid --jq '.headRefOid' 2>/dev/null) || {
+    log_error "Failed to get commit SHA for PR #${pr_number}"
+    return 1
+  }
+  
+  echo "${commit_sha}"
+}
+
+find_pipeline_for_commit() {
+  local commit_sha="$1"
+  
+  log_debug "Looking for pipeline for commit ${commit_sha}"
+  
+  # For now, we'll use a simpler approach since the SemaphoreCI API 
+  # endpoints for searching workflows/pipelines are not working as expected
+  log_error "Automatic pipeline detection is not yet fully implemented"
+  log_error "SemaphoreCI API endpoints for searching workflows/pipelines need investigation"
+  log_error ""
+  log_error "As a workaround, you can:"
+  log_error "1. Go to https://bookingexperts.semaphoreci.com"
+  log_error "2. Find the workflow for commit ${commit_sha:0:8}"
+  log_error "3. Copy the pipeline ID from the URL"
+  log_error "4. Run: ${SCRIPT_NAME} <pipeline-id>"
+  log_error ""
+  log_error "We'll improve this in a future version!"
+  
+  return 1
+}
+
+auto_detect_pipeline() {
+  if [[ -n "${BRANCH_NAME}" ]]; then
+    log_info "Auto-detecting pipeline for branch '${BRANCH_NAME}'"
+  else
+    log_info "Auto-detecting pipeline from current git branch"
+  fi
+  
+  local branch repo pr_number commit_sha pipeline_id
+  
+  # Get current branch (or specified branch)
+  branch=$(get_current_branch) || return 1
+  log_debug "Using branch: ${branch}"
+  
+  # Get GitHub repo info
+  repo=$(get_github_repo_info) || return 1
+  log_debug "GitHub repository: ${repo}"
+  
+  # Find PR for branch
+  pr_number=$(find_pr_for_branch "${branch}" "${repo}") || return 1
+  log_info "Found PR #${pr_number} for branch '${branch}'"
+  
+  # Get latest commit SHA from PR
+  commit_sha=$(get_pr_commit_sha "${repo}" "${pr_number}") || return 1
+  log_debug "Latest commit SHA: ${commit_sha}"
+  
+  # Find pipeline for commit
+  pipeline_id=$(find_pipeline_for_commit "${commit_sha}") || return 1
+  log_info "Found pipeline: ${pipeline_id}"
+  
+  echo "${pipeline_id}"
+}
+
+main() {
+  load_config
+  parse_args "$@"
+  validate_args
+  
+  # Auto-detect pipeline if requested
+  if [[ "${AUTO_MODE}" == "true" ]]; then
+    PIPELINE_ID=$(auto_detect_pipeline) || exit 1
+  fi
+  
+  log_info "Analyzing pipeline ${PIPELINE_ID}"
+  
+  # Get pipeline information
+  local pipeline_info
+  pipeline_info=$(get_pipeline_info "${PIPELINE_ID}")
+  
+  # Extract failed job IDs
+  local failed_jobs
+  failed_jobs=$(extract_failed_jobs "${pipeline_info}")
+  
+  if [[ -z "${failed_jobs}" ]]; then
+    log_info "No failed jobs found in pipeline"
+    exit 0
+  fi
+  
+  log_info "Found $(echo "${failed_jobs}" | wc -l) failed job(s)"
+  
+  # Collect all failures
+  local all_failures=""
+  
+  while IFS= read -r job_id; do
+    if [[ -n "${job_id}" ]]; then
+      log_debug "Processing job ${job_id}"
+      
+      local job_logs
+      job_logs=$(get_job_logs "${job_id}")
+      
+      local job_failures
+      job_failures=$(parse_test_failures "${job_logs}")
+      
+      if [[ -n "${job_failures}" ]]; then
+        all_failures="${all_failures}${job_failures}"$'\n'
+      fi
+    fi
+  done <<< "${failed_jobs}"
+  
+  # Format and output results
+  if [[ -n "${VALIDATE_FILE}" ]]; then
+    validate_output "${all_failures}" "${VALIDATE_FILE}"
+  else
+    format_output "${OUTPUT_FORMAT}" "${all_failures}"
+  fi
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi

@@ -4,11 +4,12 @@ set -euo pipefail
 IFS=$'\n\t'
 
 INCLUDE_UNTRACKED=0
-REBASE_BASE="origin/HEAD"
+REBASE_BASE=""
 
 usage() {
-    echo "Usage: git sync [-h] [-u] <branch-name>"
+    echo "Usage: git update [-h] [-u] [branch-name]"
     echo "  -u    Include untracked files in stash"
+    echo "  branch-name    Branch to rebase against (default: origin/HEAD or origin/main)"
     exit 1
 }
 
@@ -42,7 +43,30 @@ stash_changes() {
 
 fetch_and_rebase() {
     git fetch origin
-    git rebase "$REBASE_BASE"
+    
+    # Check if we're trying to rebase against origin/current-branch
+    if [[ "$REBASE_BASE" == "origin/$CURRENT_BRANCH" ]]; then
+        # Check if the remote branch exists
+        if ! git show-ref --quiet "refs/remotes/$REBASE_BASE"; then
+            echo "Remote branch $REBASE_BASE doesn't exist." >&2
+            echo "You may need to push this branch first: git push -u origin $CURRENT_BRANCH" >&2
+            echo "Or rebase against a different branch: git update origin/staging" >&2
+            exit 1
+        fi
+    fi
+    
+    # Try to rebase, if it fails due to missing upstream, set it up
+    if ! git rebase "$REBASE_BASE" 2>/dev/null; then
+        # Check if the error is about missing upstream
+        if [ "$REBASE_BASE" = "origin/$CURRENT_BRANCH" ]; then
+            echo "Setting up tracking for $CURRENT_BRANCH..." >&2
+            git branch --set-upstream-to="$REBASE_BASE" "$CURRENT_BRANCH"
+            git rebase "$REBASE_BASE"
+        else
+            # Re-run the rebase to show the actual error
+            git rebase "$REBASE_BASE"
+        fi
+    fi
 }
 
 pop_stash() {
@@ -52,11 +76,42 @@ pop_stash() {
     fi
 }
 
+get_default_branch() {
+    # Try origin/HEAD first
+    local default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/||')
+    
+    # If that doesn't work, try common default branch names
+    if [ -z "$default_branch" ]; then
+        for branch in origin/staging origin/main origin/master origin/develop; do
+            if git show-ref --quiet refs/remotes/$branch; then
+                default_branch=$branch
+                break
+            fi
+        done
+    fi
+    
+    # If still nothing found, error out with helpful message
+    if [ -z "$default_branch" ]; then
+        echo "Error: Could not determine default branch. Please specify explicitly or set origin/HEAD:" >&2
+        echo "  git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/staging" >&2
+        echo "  git update origin/staging" >&2
+        exit 1
+    fi
+    
+    echo "$default_branch"
+}
+
 main() {
     check_git_installed
     parse_arguments "$@"
 
     CURRENT_BRANCH=$(git branch --show-current)
+    
+    # Set default rebase base if not specified
+    if [ -z "$REBASE_BASE" ]; then
+        # Use the default branch (origin/HEAD, origin/staging, etc.)
+        REBASE_BASE=$(get_default_branch)
+    fi
 
     stash_changes
     fetch_and_rebase

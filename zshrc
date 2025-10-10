@@ -35,8 +35,21 @@ unquarantine() {
   xattr -rd com.apple.quarantine "$@"
 }
 
+gw() {
+  local output=$(git workon "$@")
+  if [ $? -eq 0 ]; then
+    local path=$(echo "$output" | tail -n1)
+    if [ -n "$path" ]; then
+      cd "$path"
+    fi
+  fi
+}
+
 export PATH="$HOME/bin:/opt/homebrew/opt/postgresql@17/bin:/opt/homebrew/sbin:/opt/homebrew/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:$PATH"
 
 eval "$(rbenv init -)"
 
 source ~/.zshrc.local
+source ~/.secrets.env
+
+. "$HOME/.local/bin/env"

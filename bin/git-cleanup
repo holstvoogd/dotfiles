@@ -3,48 +3,339 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# Function to display usage information
+# Default options
+FORCE_DELETE=false
+CLEAN_BRANCHES=false
+CLEAN_WORKTREES=false
+CLEAN_ALL=false
+DRY_RUN=false
+
+# Protected branches that should never be deleted
+PROTECTED_BRANCHES="main|master|staging|develop|production"
+
 usage() {
-    echo "Usage: $0 [-f] [-h]"
-    echo "  -f    Force delete untracked files and directories"
-    echo "  -h    Display this help message"
-    exit 1
+  echo "Usage: git cleanup [-f] [-b] [-w] [-a] [-n] [-h]"
+  echo "  -f    Force mode: clean untracked files and force worktree removal"
+  echo "  -b    Clean up merged branches"
+  echo "  -w    Clean up worktrees for deleted/merged branches"
+  echo "  -a    All cleanup (repository + branches + worktrees)"
+  echo "  -n    Dry run - show what would be deleted"
+  echo "  -h    Display this help message"
+  echo ""
+  echo "Examples:"
+  echo "  git cleanup         # Basic repository cleanup"
+  echo "  git cleanup -b      # Clean merged branches"
+  echo "  git cleanup -w      # Clean worktrees"
+  echo "  git cleanup -a      # Full cleanup"
+  echo "  git cleanup -an     # Show what full cleanup would do"
+  exit 1
 }
 
 # Parse command-line options
-FORCE_DELETE=false
-while getopts ":fh" opt; do
-    case ${opt} in
-        f )
-            FORCE_DELETE=true
-            ;;
-        h )
-            usage
-            ;;
-        \? )
-            echo "Invalid option: -$OPTARG" >&2
-            usage
-            ;;
-    esac
+while getopts ":fbwanh" opt; do
+  case ${opt} in
+    f) FORCE_DELETE=true ;;
+    b) CLEAN_BRANCHES=true ;;
+    w) CLEAN_WORKTREES=true ;;
+    a) CLEAN_ALL=true ;;
+    n) DRY_RUN=true ;;
+    h) usage ;;
+    \?) echo "Invalid option: -$OPTARG" >&2; usage ;;
+  esac
 done
 
+# If -a is set, enable all cleanup options
+if [ "$CLEAN_ALL" = true ]; then
+  CLEAN_BRANCHES=true
+  CLEAN_WORKTREES=true
+fi
+
 # Ensure we are in a git repository
-if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-    echo "Error: Not inside a git repository" >&2
-    exit 1
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+  echo "Error: Not inside a git repository" >&2
+  exit 1
 fi
 
-# Clean up the repository
-echo "Cleaning up the repository..."
-git fetch --prune
-git remote prune origin
+# If we're in a bare repo, we need to move to a worktree for some operations
+ensure_in_worktree() {
+  if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    # We're in a bare repo, find a worktree to work from
+    local staging_worktree=$(git worktree list --porcelain | grep -B1 "branch refs/heads/staging" | grep "^worktree" | head -1 | sed 's/^worktree //')
+    
+    if [ -z "$staging_worktree" ]; then
+      # Try to find any worktree
+      staging_worktree=$(git worktree list --porcelain | grep "^worktree" | grep -v "bare" | head -1 | sed 's/^worktree //')
+    fi
+    
+    if [ -z "$staging_worktree" ] || [ ! -d "$staging_worktree" ]; then
+      echo "Error: Cannot find a worktree to operate from. Please run from within a worktree." >&2
+      exit 1
+    fi
+    
+    echo "Operating from worktree: $staging_worktree"
+    cd "$staging_worktree"
+  fi
+}
 
-if [ "$FORCE_DELETE" = true ]; then
-    git clean -fdx
-else
-    git clean -fd
-fi
+# Get the main branch (try origin/HEAD, then common defaults)
+get_main_branch() {
+  local main_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/||')
+  if [ -z "$main_branch" ]; then
+    for branch in origin/main origin/master origin/staging origin/develop; do
+      if git show-ref --quiet refs/remotes/$branch; then
+        main_branch=$branch
+        break
+      fi
+    done
+  fi
+  echo "${main_branch:-origin/main}"
+}
 
-git gc --aggressive --prune=now
+# Get current branch
+get_current_branch() {
+  git branch --show-current
+}
 
-echo "Repository cleanup complete."
+# Get repository root
+get_repo_root() {
+  git rev-parse --show-toplevel
+}
+
+# Check if we're in a worktree
+is_worktree() {
+  [ -f "$(get_repo_root)/.git" ]
+}
+
+# Get main worktree path (where .git directory is)
+get_main_worktree_path() {
+  local git_dir=$(git rev-parse --git-common-dir 2>/dev/null || git rev-parse --git-dir)
+  if [[ "$git_dir" == *"/.git" ]]; then
+    dirname "$git_dir"
+  elif [[ "$git_dir" == ".git" ]]; then
+    pwd
+  else
+    dirname "$git_dir"
+  fi
+}
+
+# Clean up repository files
+clean_repository() {
+  echo "=== Cleaning repository files ==="
+  
+  if [ "$DRY_RUN" = true ]; then
+    echo "[DRY-RUN] Would prune remote references"
+    if [ "$FORCE_DELETE" = true ]; then
+      echo "[DRY-RUN] Would clean with: git clean -fdx"
+    else
+      echo "[DRY-RUN] Would clean with: git clean -fd"
+    fi
+    echo "[DRY-RUN] Would run: git gc --aggressive --prune=now"
+  else
+    echo "Pruning remote references..."
+    git fetch --prune
+    git remote prune origin
+    
+    # Only clean untracked files if force flag is set and we're in a worktree
+    if [ "$FORCE_DELETE" = true ] && git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+      echo "Cleaning untracked files..."
+      git clean -fdx
+    fi
+    
+    echo "Running garbage collection..."
+    git gc --aggressive --prune=now
+  fi
+}
+
+# Clean up merged branches
+clean_branches() {
+  echo "=== Cleaning merged branches ==="
+  
+  local main_branch=$(get_main_branch)
+  local current_branch=$(get_current_branch)
+  
+  # Get list of branches that have worktrees
+  local worktree_branches=$(git worktree list --porcelain | grep "^branch" | sed 's/^branch refs\/heads\///' | sort -u)
+  
+  # Get merged local branches
+  echo "Finding merged local branches..."
+  local merged_branches=$(git branch --merged "$main_branch" | grep -v -E "^\*|^\+|$PROTECTED_BRANCHES" | sed 's/^[[:space:]]*//; s/^+[[:space:]]*//')
+  
+  # Filter out branches that have worktrees
+  local branches_to_delete=""
+  while IFS= read -r branch; do
+    if [ -n "$branch" ] && ! echo "$worktree_branches" | grep -q "^$branch$"; then
+      branches_to_delete="$branches_to_delete$branch"$'\n'
+    fi
+  done <<< "$merged_branches"
+  
+  # Remove trailing newline
+  branches_to_delete=$(echo -n "$branches_to_delete" | sed '/^$/d')
+  
+  if [ -z "$branches_to_delete" ]; then
+    echo "No merged local branches to clean"
+  else
+    echo "Merged local branches to delete:"
+    echo "$branches_to_delete" | sed 's/^/  /'
+    
+    if [ "$DRY_RUN" = true ]; then
+      echo "[DRY-RUN] Would delete these local branches"
+    else
+      if [ "$FORCE_DELETE" = true ] || confirm "Delete these local branches?"; then
+        echo "$branches_to_delete" | xargs -r git branch -d
+      fi
+    fi
+  fi
+  
+  # Prune remote tracking branches for deleted remotes
+  echo ""
+  echo "Pruning deleted remote branches..."
+  if [ "$DRY_RUN" = true ]; then
+    echo "[DRY-RUN] Would run: git remote prune origin"
+  else
+    git remote prune origin
+  fi
+}
+
+# Clean up worktrees
+clean_worktrees() {
+  echo "=== Cleaning worktrees ==="
+  
+  local main_path=$(get_main_worktree_path)
+  local main_branch=$(get_main_branch | sed 's|^origin/||')
+  
+  # Get all worktrees
+  local worktrees=$(git worktree list --porcelain | grep "^worktree" | sed 's/^worktree //')
+  
+  while IFS= read -r worktree_path; do
+    # Skip the main worktree
+    if [ "$worktree_path" = "$main_path" ]; then
+      continue
+    fi
+    
+    # Get branch name from worktree
+    local branch_info=$(git worktree list --porcelain | grep -A2 "^worktree $worktree_path" | grep "^branch" | sed 's/^branch refs\/heads\///')
+    
+    if [ -z "$branch_info" ]; then
+      continue
+    fi
+    
+    # Skip protected branches
+    if echo "$branch_info" | grep -qE "^($PROTECTED_BRANCHES)$"; then
+      continue
+    fi
+    
+    # Check if branch exists on remote
+    local remote_exists=$(git ls-remote --heads origin "$branch_info" 2>/dev/null)
+    
+    # Check if branch is merged
+    local is_merged=false
+    if git branch --merged "$main_branch" | grep -q "^[[:space:]]*$branch_info$"; then
+      is_merged=true
+    fi
+    
+    # Check for uncommitted changes
+    local has_changes=false
+    if [ -d "$worktree_path" ]; then
+      if (cd "$worktree_path" && [ -n "$(git status --porcelain 2>/dev/null)" ]); then
+        has_changes=true
+      fi
+    fi
+    
+    # Decide if worktree should be removed
+    local should_remove=false
+    local reason=""
+    
+    if [ -z "$remote_exists" ] && [ "$is_merged" = true ]; then
+      should_remove=true
+      reason="branch is merged and deleted from remote"
+    elif [ -z "$remote_exists" ]; then
+      should_remove=true
+      reason="branch is deleted from remote"
+    elif [ "$is_merged" = true ]; then
+      should_remove=true
+      reason="branch is merged"
+    fi
+    
+    if [ "$should_remove" = true ]; then
+      echo ""
+      echo "Worktree: $worktree_path"
+      echo "  Branch: $branch_info"
+      echo "  Reason: $reason"
+      
+      if [ "$has_changes" = true ]; then
+        echo "  WARNING: Has uncommitted changes"
+        if [ "$FORCE_DELETE" = false ] && [ "$DRY_RUN" = false ]; then
+          echo "  Skipping (use -f to force)"
+          continue
+        fi
+      fi
+      
+      if [ "$DRY_RUN" = true ]; then
+        echo "  [DRY-RUN] Would remove this worktree"
+      else
+        if [ "$FORCE_DELETE" = true ] || [ "$has_changes" = false ] || confirm "Remove worktree with uncommitted changes?"; then
+          echo "  Removing worktree..."
+          git worktree remove "$worktree_path" $([ "$FORCE_DELETE" = true ] && echo "--force" || echo "")
+        fi
+      fi
+    fi
+  done <<< "$worktrees"
+  
+  # Prune worktree list
+  if [ "$DRY_RUN" = false ]; then
+    git worktree prune
+  fi
+}
+
+# Confirmation prompt
+confirm() {
+  local prompt="$1"
+  local response
+  read -p "$prompt [y/N] " -n 1 -r response
+  echo
+  [[ $response =~ ^[Yy]$ ]]
+}
+
+# Main execution
+main() {
+  local repo_root=$(get_repo_root)
+  
+  # Ensure we're in a worktree for operations that need it (including basic cleanup)
+  ensure_in_worktree
+  
+  local current_branch=$(get_current_branch)
+  
+  echo "Git Cleanup Tool"
+  echo "Repository: $repo_root"
+  echo "Current branch: $current_branch"
+  
+  if [ "$DRY_RUN" = true ]; then
+    echo "MODE: DRY RUN - No changes will be made"
+  fi
+  
+  echo ""
+  
+  # Always do basic cleanup unless only branches or worktrees requested
+  if [ "$CLEAN_BRANCHES" = false ] && [ "$CLEAN_WORKTREES" = false ]; then
+    clean_repository
+  elif [ "$CLEAN_ALL" = true ]; then
+    clean_repository
+  fi
+  
+  # Clean branches if requested
+  if [ "$CLEAN_BRANCHES" = true ]; then
+    echo ""
+    clean_branches
+  fi
+  
+  # Clean worktrees if requested
+  if [ "$CLEAN_WORKTREES" = true ]; then
+    echo ""
+    clean_worktrees
+  fi
+  
+  echo ""
+  echo "Cleanup complete!"
+}
+
+main

@@ -72,6 +72,7 @@ require("lazy").setup({
   "vim-ruby/vim-ruby",
   "godlygeek/tabular",
   'MunifTanjim/nui.nvim',
+  'Einenlum/yaml-revealer',
 
   -- Solarized Light theme
   {
@@ -321,41 +322,54 @@ require("lazy").setup({
       })
     end
   },
-
-  -- Copilot and CopilotChat
-  "github/copilot.vim",
+  -- Copilot (enhanced version)
+  {
+    "zbirenbaum/copilot.lua",
+    cmd = "Copilot",
+    event = "InsertEnter",
+    config = function()
+      require("copilot").setup({
+        suggestion = {
+          enabled = true,
+          auto_trigger = true,
+          debounce = 75,
+          keymap = {
+            accept = "<Tab>",
+            accept_word = false,
+            accept_line = false,
+            next = "<M-]>",
+            prev = "<M-[>",
+            dismiss = "<C-]>",
+          },
+        },
+        panel = {
+          enabled = true,
+          auto_refresh = false,
+          keymap = {
+            jump_prev = "[[",
+            jump_next = "]]",
+            accept = "<CR>",
+            refresh = "gr",
+            open = "<M-CR>"
+          },
+        },
+      })
+    end,
+  },
+  
+  -- CopilotChat for agent-like features
   {
     "CopilotC-Nvim/CopilotChat.nvim",
+    branch = "main",
     dependencies = {
-      "nvim-lua/plenary.nvim",
-      "nvim-telescope/telescope.nvim",
-    },
-    build = "make tiktoken",
-    keys = {
-      { "\\cc", ":CopilotChat ", desc = "CopilotChat - Ask about code", mode = { "n", "v" } },
-      { "\\cd", "<cmd>CopilotChatDocs<cr>", desc = "CopilotChat - Generate documentation for selected code", mode = "v" },
-      { "\\ce", "<cmd>CopilotChatExplain<cr>", desc = "CopilotChat - Explain code", mode = { "n", "v" } },
-      { "\\cf", "<cmd>CopilotChatFix<cr>", desc = "CopilotChat - Fix code", mode = { "n", "v" } },
-      { "\\cm", "<cmd>CopilotChatCommit<cr>", desc = "CopilotChat - Write commit message for the change", mode = { "v", "n" } },
-      { "\\co", "<cmd>CopilotChatOptimize<cr>", desc = "CopilotChat - Optimize selected code", mode = "v" },
-      { "\\cr", "<cmd>CopilotChatReview<cr>", desc = "CopilotChat - Review selected code", mode = "v" },
-      { "\\ct", "<cmd>CopilotChatTests<cr>", desc = "CopilotChat - Generate tests", mode = { "n", "v" } },
+      { "zbirenbaum/copilot.lua" },
+      { "nvim-lua/plenary.nvim" }
     },
     opts = {
-      show_help = "yes",
       debug = false,
-      disable_extra_info = 'no',
       window = {
-        layout = 'float',
-        relative = 'cursor',
-        width = 1,
-        height = 0.4,
-        row = 1
-      },
-      prompts = {
-        Commit = {
-          prompt = '> #git:staged\n\nWrite commit message for the change using the following format:\n<Issue ID if available from the git branch name> <Short description of the change>\n<More detailed description, if necessary>. Make sure the title has maximum 50 characters and message is wrapped at 72 characters. Wrap the whole message in code block with language gitcommit.',
-        },
+        layout = 'vertical',
+        width = 0.4,
       },
     },
   },
@@ -399,31 +413,50 @@ keymap('n', '<C-c>', ':noh<CR>')
 -- Sudo write
 vim.api.nvim_set_keymap('c', 'sudow', 'w !sudo tee % >/dev/null', { noremap = true, silent = true })
 
+-- Copilot Chat mappings
+keymap('n', '\\cc', ':CopilotChat<CR>')                    -- Open chat
+keymap('v', '\\cc', ':CopilotChat<CR>')                    -- Chat with selection
+keymap('n', '\\ce', ':CopilotChatExplain<CR>')             -- Explain code
+keymap('v', '\\ce', ':CopilotChatExplain<CR>')             -- Explain selection
+keymap('n', '\\ct', ':CopilotChatTests<CR>')               -- Generate tests
+keymap('v', '\\cr', ':CopilotChatReview<CR>')              -- Review selection
+keymap('v', '\\cf', ':CopilotChatFix<CR>')                 -- Fix issues
+keymap('v', '\\co', ':CopilotChatOptimize<CR>')            -- Optimize code
+keymap('n', '\\cd', ':CopilotChatDocs<CR>')                -- Add documentation
+keymap('n', '\\cg', ':CopilotChatCommit<CR>')              -- Generate commit message
+
+-- LSP mappings for Ruby IDE features
+keymap('n', 'gd', vim.lsp.buf.definition)                  -- Go to definition
+keymap('n', 'gr', vim.lsp.buf.references)                  -- Find references
+keymap('n', 'K', vim.lsp.buf.hover)                        -- Show documentation
+keymap('n', '<leader>rn', vim.lsp.buf.rename)              -- Rename symbol
+keymap('n', '<leader>ca', vim.lsp.buf.code_action)         -- Code actions
+
 -- Auto generate commit message
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "gitcommit",
-  callback = function()
-    local bufnr = vim.api.nvim_get_current_buf()
-    local filename = vim.api.nvim_buf_get_name(bufnr)
-    -- Only run for COMMIT_EDITMSG and not MERGE_MSG or other git files
-    if not filename:match("COMMIT_EDITMSG$") then
-      return
-    end
-    -- Check if the buffer only contains default git commit comments
-    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-    local is_empty = true
-    for _, line in ipairs(lines) do
-      if not line:match("^#") and line ~= "" then
-        is_empty = false
-        break
-      end
-    end
-    if is_empty then
-      vim.schedule(function()
-        -- Ensure the plugin is loaded
-        require('CopilotChat')
-        vim.cmd('CopilotChatCommit')
-      end)
-    end
-  end
-})
+-- vim.api.nvim_create_autocmd("FileType", {
+--   pattern = "gitcommit",
+--   callback = function()
+--     local bufnr = vim.api.nvim_get_current_buf()
+--     local filename = vim.api.nvim_buf_get_name(bufnr)
+--     -- Only run for COMMIT_EDITMSG and not MERGE_MSG or other git files
+--     if not filename:match("COMMIT_EDITMSG$") then
+--       return
+--     end
+--     -- Check if the buffer only contains default git commit comments
+--     local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+--     local is_empty = true
+--     for _, line in ipairs(lines) do
+--       if not line:match("^#") and line ~= "" then
+--         is_empty = false
+--         break
+--       end
+--     end
+--     if is_empty then
+--       vim.schedule(function()
+--         -- Ensure the plugin is loaded
+--         require('CopilotChat')
+--         vim.cmd('CopilotChatCommit')
+--       end)
+--     end
+--   end
+-- })
